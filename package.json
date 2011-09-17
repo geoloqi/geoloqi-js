@@ -1,9 +1,12 @@
-{ "name" : "geoloqi"
-, "description" : "Library for interacting with the Geoloqi API. Works on Node.js and the client side."
-, "version" : "0.0.1"
-, "directories" : { "lib" : "./lib" }
-, "main" : "index.js"
-, "author" : "Kyle Drake <kyledrake@gmail.com>"
-, "repository" : { "type":"git", "url":"http://github.com/geoloqi/geoloqi-js.git" }
-, "devDependencies": {}
+{ "name" : "geoloqi",
+  "description" : "Library for interacting with the Geoloqi API. Works on Node.js and the client side.",
+  "version" : "0.0.1",
+  "directories" : { "lib" : "./lib" },
+  "main" : "index.js",
+  "author" : "Kyle Drake <kyledrake@gmail.com>",
+  "repository" : { "type":"git", "url":"http://github.com/geoloqi/geoloqi-js.git" },
+  "dependencies": {
+    "superagent": "0.1.1"
+  },
+  "devDependencies": {}
 }
