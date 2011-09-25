@@ -24,7 +24,7 @@ In Node.js:
       if(err) {
         throw new Error('There has been an error! '+err);
       } else {
-        console.log(result);
+        console.log(result.username);
       }
     }
 
