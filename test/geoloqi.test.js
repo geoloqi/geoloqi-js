@@ -6,12 +6,14 @@ var https = require('https'),
 
 fakeweb.allowNetConnect = false;
 fakeweb.registerUri({uri: 'https://api.geoloqi.com/1/account/username', body: '{"username":"testuser"}'});
-fakeweb.registerUri({uri: 'https://api.geoloqi.com/1/account/profile', body: '{"result":"ok"}'});
+fakeweb.registerUri({uri: 'https://api.geoloqi.com/1/account/profile', args:{'lol':'cats'}, body: '{"result":"ok"}'});
 
-var sessionConfig = {'access_token': '1234',
-                     'redirect_uri': 'http://test',
-                     'client_id': 'client_id',
-                     'client_secret': 'client_secret'};
+fakeweb.registerUri({uri: 'https://api.geoloqi.com/1/oauth/token',
+                     body: JSON.stringify({
+                            "access_token":"4321dcba",
+                            "token_type":"test",
+                            "expires_in":3600,
+                            "refresh_token":"lolcats"})});
 
 vows.describe('Geoloqi Session').addBatch({
   'when making get request for a username': {
@@ -24,6 +26,7 @@ vows.describe('Geoloqi Session').addBatch({
       assert.equal(result.username, 'testuser');
     }
   },
+
   'when posting a profile': {
     topic: function() {
       var session = new geoloqi.Session();
@@ -31,6 +34,16 @@ vows.describe('Geoloqi Session').addBatch({
     },
     'we get an ok response': function (result, err) {
       assert.equal(result.result, 'ok');
+    }
+  },
+
+  'when authorizing a code': {
+    topic: function() {
+      var session = new geoloqi.Session({}, {'client_id': 'idtest', 'client_secret': 'secrettest', 'redirect_uri':'http://example.org/test'});
+      session.authorize('abcd1234', this.callback);
+    },
+    'we get an access token json': function(result, err) {
+      assert.equal(result.access_token, '4321dcba');
     }
   }
 }).run();
