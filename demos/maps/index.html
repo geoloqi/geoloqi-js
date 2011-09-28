@@ -74,6 +74,8 @@
 
       geoloqi.maps.styles.setDefault('geoloqi');
 
+      info = new geoloqi.maps.InfoBox("<div class='arrow'></div><div class='content'>Multi Box</div>");
+
       console.log("   ");
       console.log("Create Basic Pin");
       pin = new geoloqi.maps.pins.Basic({
@@ -99,27 +101,26 @@
       console.log("  ");
       console.log("Create Pin With Infobox");
       pinWithInfobox = new geoloqi.maps.pins.WithInfobox({
-        content: "<div class='arrow'></div><div class='content'><p>Info<p></div>",
+        content: info,
         lat: 47.5246,
         lng: -122.6834,
         draggable:true,
         autopan:true,
-        opened: true
+        openAfterDrag: true
       });
       console.log(pinWithInfobox);
 
       console.log("  ");
       console.log("Create Pin With Infobox And Radius");
       pinWithInfoboxAndRadius = new geoloqi.maps.pins.WithInfoboxAndRadius({
-        content: "<div class='arrow'></div><div class='content'><p>Info + Radius<p></div>",
+        content: info,
         lat: 45.5246,
         lng: -120.6834,
         draggable:true,
         radius: 100000,
         autopan: true,
         editable: true,
-        opened: true,
-        toggleInfoOnClick: true
+        openAfterDrag: true
       });
       console.log(pinWithInfoboxAndRadius);
 

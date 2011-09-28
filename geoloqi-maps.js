@@ -110,7 +110,8 @@ if(google){ //Everything in here requires google maps
     info: {
       useInfobox: false,
       opened: true,
-      toggleInfoOnClick: true
+      toggleInfoOnClick: true,
+      openAfterDrag: true
     }
   };
 
@@ -474,30 +475,12 @@ if(google){ //Everything in here requires google maps
 
       this.hideInfo = function() {
         this.opened = false;
-        if(typeof Infobox != "undefined"){
-          if(this.info instanceof Infobox){
-            this.info.hide();
-          } else {
-            this.info.close();
-          }
-        } else {
-          this.info.close();
-        }
+        this.info.close();
       };
 
       this.showInfo = function() {
         this.opened = true;
-        if(typeof Infobox != "undefined"){
-          if(this.info instanceof Infobox){
-            if(this.infoOpened){
-              this.info.open(defaults.map, this.marker);
-            } else {
-              this.info.show();
-            }
-          }
-        } else {
-          this.info.open(defaults.map, this.marker);
-        }
+        this.info.open(defaults.map, this.marker);
       };
 
       this.toggleInfo = function() {
@@ -542,6 +525,8 @@ if(google){ //Everything in here requires google maps
           }
         } else if (this.options.content instanceof InfoBox || this.options.content instanceof google.maps.InfoWindow) {
           this.info = this.options.content;
+          this.options.toggleInfoOnClick = true;
+          this.opened = false;
         } else {
           this.info = null;
         }
@@ -564,25 +549,35 @@ if(google){ //Everything in here requires google maps
           self.hideInfo();
         });
 
-        google.maps.event.addListener(this.marker, "dragend", function(event) {
-          if(!self.options.autopan && !this.opened){
-            self.showInfo();
-          }
-        });
+        google.maps.event.addListenerOnce(defaults.map, 'idle', function(event){
 
-        google.maps.event.addListener(defaults.map, 'idle', function(event){
-          if(self.options.autopan && !this.opened){
-            self.showInfo();
+          if(self.options.autopan){
+            google.maps.event.addListener(defaults.map, 'idle', function(event){
+              if(!self.opened && self.options.openAfterDrag){
+                self.showInfo();
+              }
+            });
+          } else {
+            google.maps.event.addListener(self.marker, "dragend", function(event) {
+              if(!self.opened && self.options.openAfterDrag){
+                self.showInfo();
+              }
+            });
           }
+
         });
 
         if(this.info){
+          google.maps.event.addListener(this.info, 'close', function(){
+            self.opened = false;
+          });
+
           google.maps.event.addListener(this.info, 'closeclick', function(){
             self.opened = false;
           });
         }
 
-        if(this.infoOptions.opened){
+        if(this.infoOptions.opened && this.reference === false){
           this.info.open(defaults.map, this.marker);
         };
 
@@ -648,7 +643,21 @@ if(google){ //Everything in here requires google maps
 
     return new object();
   };
+
+  //Helper to generate styled info boxes
+  geoloqi.maps.InfoBox = function(content, styleKey){
+
+    style = (typeof styleKey == 'undefined') ? geoloqi.maps.styles.default : geoloqi.maps.styles[style];
+    console.log(style);
+    options = util.merge(defaults.info, style.info);
+    console.log(options);
+    options.content = content;
+
+    return new InfoBox(options);
+  };
+
 }; //End Google Maps
+
   return geoloqi;
 
 }(google));
