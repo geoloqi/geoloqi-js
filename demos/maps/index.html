@@ -74,7 +74,8 @@
 
       geoloqi.maps.styles.setDefault('geoloqi');
 
-      info = new geoloqi.maps.InfoBox("<div class='arrow'></div><div class='content'>Multi Box</div>");
+      info = geoloqi.maps.InfoBox("<div class='arrow'></div><div class='content'>Multi Box</div>", "geoloqi");
+      console.log(info);
 
       console.log("   ");
       console.log("Create Basic Pin");

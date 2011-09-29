@@ -1,3 +1,13 @@
+window.geoloqiLog = function(){
+  geoloqiLog.history = geoloqiLog.history || [];   // store logs to an array for reference
+  geoloqiLog.history.push(arguments);
+  if(this.console) {
+    arguments.callee = arguments.callee.caller;
+    var newarr = [].slice.call(arguments);
+    (typeof console.log === 'object' ? geoloqiLog.apply.call(console.log, console, newarr) : console.log.apply(console, newarr));
+  }
+};
+
 //Make Google Maps Optional
 if(typeof google == 'undefined'){
   var google = null;
@@ -516,20 +526,25 @@ if(google){ //Everything in here requires google maps
         var self = this;
 
         this.opened = this.infoOptions.opened; //Only for use infobox
-
-        if(typeof this.options.content == 'string'){
-          if(this.infoOptions.useInfobox){
-            this.info = new InfoBox(this.infoOptions);
+        try{
+          if(typeof this.options.content == 'string'){
+            if(this.infoOptions.useInfobox){
+              this.info = new InfoBox(this.infoOptions);
+            } else {
+              this.info = new google.maps.InfoWindow(this.infoOptions);
+            }
+          } else if (this.options.content instanceof InfoBox || this.options.content instanceof google.maps.InfoWindow) {
+            this.info = this.options.content;
+            this.options.toggleInfoOnClick = true;
+            this.opened = false;
           } else {
-            this.info = new google.maps.InfoWindow(this.infoOptions);
+            this.info = null;
           }
-        } else if (this.options.content instanceof InfoBox || this.options.content instanceof google.maps.InfoWindow) {
-          this.info = this.options.content;
-          this.options.toggleInfoOnClick = true;
-          this.opened = false;
-        } else {
+        } catch(e){
+          geoloqiLog("ERROR : It looks like "+ e.arguments[0] + " was not defined. Are you sure its loaded?", e);
+          geoloqiLog("No Infobox or InfoWindow set");
           this.info = null;
-        }
+        };
 
         if(this.options.toggleInfoOnClick){
           this.isClickable = true;
@@ -618,14 +633,13 @@ if(google){ //Everything in here requires google maps
         var self = this;
 
         google.maps.event.addListener(this.handle, "dragstart", function(event) {
-          console.log(self);
-          if(self.opened){
+          if(self.opened && self.options.openAfterDrag){
             self.hideInfo();
           }
         });
 
         google.maps.event.addListener(this.handle, "dragend", function(event) {
-          if(!this.opened){
+          if(!self.opened && self.options.openAfterDrag){
             self.showInfo();
           }
         });
@@ -645,15 +659,19 @@ if(google){ //Everything in here requires google maps
   };
 
   //Helper to generate styled info boxes
-  geoloqi.maps.InfoBox = function(content, styleKey){
+    geoloqi.maps.InfoBox = function(content, styleKey){
 
-    style = (typeof styleKey == 'undefined') ? geoloqi.maps.styles.default : geoloqi.maps.styles[style];
-    console.log(style);
-    options = util.merge(defaults.info, style.info);
-    console.log(options);
-    options.content = content;
-
-    return new InfoBox(options);
+      style = (typeof styleKey == 'undefined') ? geoloqi.maps.styles.default : geoloqi.maps.styles[styleKey];
+      
+      options = util.merge(defaults.info, style.info);
+      options.content = content;
+      
+      try{
+        return new InfoBox(options);
+      } catch(e) {
+        geoloqiLog("ERROR : It looks like "+ e.arguments[0] + " was not defined. Are you sure its loaded?", e);
+      }
+    
   };
 
 }; //End Google Maps
