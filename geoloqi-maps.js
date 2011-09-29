@@ -1,3 +1,4 @@
+//For some reason this has to be attached to the window object.
 window.geoloqiLog = function(){
   geoloqiLog.history = geoloqiLog.history || [];   // store logs to an array for reference
   geoloqiLog.history.push(arguments);
@@ -39,7 +40,7 @@ var geoloqi = ( function (google) {
     };
   }
 
-if(google){ //Everything in here requires google maps
+if(typeof google == "object"){ //Everything in here requires google maps
 
   geoloqi.maps = {};
 
@@ -401,18 +402,21 @@ if(google){ //Everything in here requires google maps
         });
 
         // Center map on the pin, show info, handle and Line
+        
+        if(self.options.autopan){
+          google.maps.event.addListener(defaults.map, 'idle', function(event){
+            if(!self.isLocked){
+              self.showHandle();  
+            } 
+          });
+        } else {
         google.maps.event.addListener(this.marker, "dragend", function(event) {
           if(!self.options.autopan){
             self.showHandle();
           }
         });
-
-        google.maps.event.addListener(defaults.map, 'idle', function(event){
-          if(self.options.autopan){
-            self.showHandle();
-          }
-        });
-
+  
+        }
         //Update Radius on handle drag
         google.maps.event.addListener(this.handle, "drag", function(event) {
 
@@ -490,6 +494,7 @@ if(google){ //Everything in here requires google maps
 
       this.showInfo = function() {
         this.opened = true;
+        this.delayed = true;
         this.info.open(defaults.map, this.marker);
       };
 
@@ -563,24 +568,22 @@ if(google){ //Everything in here requires google maps
         google.maps.event.addListener(this.marker, "dragstart", function(event) {
           self.hideInfo();
         });
-
-        google.maps.event.addListenerOnce(defaults.map, 'idle', function(event){
-
-          if(self.options.autopan){
-            google.maps.event.addListener(defaults.map, 'idle', function(event){
-              if(!self.opened && self.options.openAfterDrag){
-                self.showInfo();
-              }
-            });
-          } else {
-            google.maps.event.addListener(self.marker, "dragend", function(event) {
-              if(!self.opened && self.options.openAfterDrag){
-                self.showInfo();
-              }
-            });
-          }
-
-        });
+        this.delayed = false;
+        if(self.options.autopan){
+          google.maps.event.addListener(defaults.map, 'idle', function(event){
+            if(!self.opened && self.options.openAfterDrag && self.delayed){
+              geoloqiLog('Shown');
+              self.showInfo();
+            }
+          });
+        } else {
+          google.maps.event.addListener(this.marker, "dragend", function(event) {
+            if(!self.opened && self.options.openAfterDrag && self.delayed){
+              geoloqiLog('Shown');
+              self.showInfo();
+            }
+          });
+        }
 
         if(this.info){
           google.maps.event.addListener(this.info, 'close', function(){
@@ -592,8 +595,8 @@ if(google){ //Everything in here requires google maps
           });
         }
 
-        if(this.infoOptions.opened && this.reference === false){
-          this.info.open(defaults.map, this.marker);
+        if(this.opened){
+          self.showInfo();
         };
 
       };
@@ -674,7 +677,7 @@ if(google){ //Everything in here requires google maps
     
   };
 
-}; //End Google Maps
+}; //End Google Maps required zone
 
   return geoloqi;
 
