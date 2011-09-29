@@ -5,20 +5,22 @@
   <script type="text/javascript" src="http://google-maps-utility-library-v3.googlecode.com/svn/tags/infobox/1.1.8/src/infobox_packed.js"></script>
   <script type="text/javascript" src="../../geoloqi-maps.js"></script>
 
-<script type="text/javascript">
+  <script type="text/javascript">
 
     console.log("Start");
+
     var map;
     var pinWithRadius;
     var pinWithInfobox;
     var pinWithInfoboxAndRadius;
     var pin;
     var pin2;
+
     function initialize() {
 
       map = new google.maps.Map(document.getElementById('map'),{
         zoom: 6,
-        center: new google.maps.LatLng(45.5246, -122.6834),
+        center: new google.maps.LatLng(46.5246, -122.6834),
         mapTypeId: google.maps.MapTypeId.ROADMAP
       });
 
@@ -38,13 +40,11 @@
                   )},
         circles: {
           count: 5,
-          color: "#7cd5f7",
-          opacity: .15,
-          stroke: {
-            color: "#fff",
-            weight: 0,
-            opacity: 0.0,
-          }
+          fillColor: "#7cd5f7",
+          fillOpacity: .15,
+          strokeColor: "#fff",
+          strokeWeight: 0,
+          strokeOpacity: 0.0
         },
         handle: {
           icon: new google.maps.MarkerImage('http://geoloqi.s3.amazonaws.com/website/map-marker-handle.png?1',
@@ -55,9 +55,9 @@
           shadow: null
         },
         line: {
-          color: "#3F3F3F",
-          weight: 1,
-          opacity: 0.4
+          strokeColor: "#3F3F3F",
+          strokeWeight: 1,
+          strokeOpacity: 0.6
         },
         info: {
           useInfobox: true, //requires infobox
@@ -74,90 +74,99 @@
 
       geoloqi.maps.styles.setDefault('geoloqi');
 
-      console.log("   ")
-      console.log("Pin")
+      info = new geoloqi.maps.InfoBox("<div class='arrow'></div><div class='content'>Multi Box</div>");
+
+      console.log("   ");
+      console.log("Create Basic Pin");
       pin = new geoloqi.maps.pins.Basic({
-        lat: 46.5246,
-        lng: -121.6834,
+        lat: 45.5246,
+        lng: -124.6834,
         draggable:true,
         autopan:true
       });
       console.log(pin);
 
       console.log("  ");
-      console.log("Log Pin With Radius");
+      console.log("Create Pin With Radius");
       pinWithRadius = new geoloqi.maps.pins.WithRadius({
         radius: 500,
-        lat: 44.5246,
-        lng: -121.6834,
-        draggable:true
+        lat: 43.5246,
+        lng: -122.6834,
+        draggable:true,
+        radius: 100000,
+        editableRadius: true
       });
       console.log(pinWithRadius);
 
       console.log("  ");
-      console.log("Log Pin With Infobox");
+      console.log("Create Pin With Infobox");
       pinWithInfobox = new geoloqi.maps.pins.WithInfobox({
-        content: "<div class='arrow'></div><div class='content'><p>Test<p></div>",
-        lat: 45.5246,
-        lng: -120.6834,
+        content: info,
+        lat: 47.5246,
+        lng: -122.6834,
         draggable:true,
-        autopan:true
+        autopan:true,
+        openAfterDrag: true
       });
       console.log(pinWithInfobox);
 
       console.log("  ");
-      console.log("Log Pin With Infobox And Radius");
+      console.log("Create Pin With Infobox And Radius");
       pinWithInfoboxAndRadius = new geoloqi.maps.pins.WithInfoboxAndRadius({
-        content: "<div class='arrow'></div><div class='content'><p>Test<p></div>",
-        radius: 500,
+        content: info,
         lat: 45.5246,
-        lng: -123.6834,
-        draggable:true
+        lng: -120.6834,
+        draggable:true,
+        radius: 100000,
+        autopan: true,
+        editable: true,
+        openAfterDrag: true
       });
       console.log(pinWithInfoboxAndRadius);
 
     }
 
     google.maps.event.addDomListener(window, 'load', initialize);
-</script>
+  </script>
 
   <style type="text/css">
     #map{
-      width:1200px;
+      width:800px;
       height:600px;
     }
-.geoloqi-infobox {
-  padding: 5px;
-  width: 270px;
-  background-color: #e6e6e6;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  -webkit-box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4), 0 1px 0px rgba(0, 0, 0, 0.05);
-  -moz-box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4), 0 1px 0px rgba(0, 0, 0, 0.05);
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4), 0 1px 0px rgba(0, 0, 0, 0.05);
-}
-.geoloqi-infobox .arrow {
-  position: absolute;
-  width: 0;
-  height: 0;
-  left: 50%;
-  margin-left: 5px;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid #e6e6e6;
-  bottom: -5px;
-}
-.geoloqi-infobox .content {
-  background-color: white;
-  padding: 9px;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  -webkit-background-clip: padding-box;
-  -moz-background-clip: padding-box;
-  background-clip: padding-box;
-}
+
+    .geoloqi-infobox {
+      padding: 5px;
+      width: 270px;
+      background-color: #e6e6e6;
+      -webkit-border-radius: 3px;
+      -moz-border-radius: 3px;
+      border-radius: 3px;
+      -webkit-box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4), 0 1px 0px rgba(0, 0, 0, 0.05);
+      -moz-box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4), 0 1px 0px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4), 0 1px 0px rgba(0, 0, 0, 0.05);
+    }
+    .geoloqi-infobox .arrow {
+      position: absolute;
+      width: 0;
+      height: 0;
+      left: 50%;
+      margin-left: 5px;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid #e6e6e6;
+      bottom: -5px;
+    }
+    .geoloqi-infobox .content {
+      background-color: white;
+      padding: 9px;
+      -webkit-border-radius: 3px;
+      -moz-border-radius: 3px;
+      border-radius: 3px;
+      -webkit-background-clip: padding-box;
+      -moz-background-clip: padding-box;
+      background-clip: padding-box;
+    }
 
  </style>
 

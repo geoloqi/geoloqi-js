@@ -5,8 +5,6 @@ if(typeof google == 'undefined'){
 
 var geoloqi = ( function (google) {
 
-  //@TODO geoloqi.maps should be wrapped in an if statement so google maps is optional
-
   //Public Facing Object
   var geoloqi = {},
 
@@ -66,19 +64,17 @@ if(google){ //Everything in here requires google maps
     marker:{},
     circles: {
       count: 1,
-      color: "#CE7F2C",
-      opacity: 0.4,
-      stroke: {
-        color: "#CE7F2C",
-        weight: 2,
-        opacity: 0.6
-      }
+      fillColor: "#CE7F2C",
+      fillOpacity: 0.2,
+      strokeColor: "#CE7F2C",
+      strokeWeight: 2,
+      strokeOpacity: 0.6
     },
     handle: {},
     line: {
-      color: "#000",
-      weight: 2,
-      opacity: 0.8
+      strokeColor: "#000",
+      strokeWeight: 2,
+      strokeOpacity: 0.6
     },
     info: {
       useInfobox: false
@@ -95,13 +91,11 @@ if(google){ //Everything in here requires google maps
       draggable: true,
       editable: true,
       radius: 100,
-      autopan: false
+      autopan: false,
+      toggleInfobox: false
     },
     line: {
       clickable: false,
-      strokeColor: geoloqi.maps.styles['default'].line.color,
-      strokeOpacity: geoloqi.maps.styles['default'].line.opacity,
-      strokeWeight: geoloqi.maps.styles['default'].line.weight,
       map: null
     },
     handle: {
@@ -114,7 +108,10 @@ if(google){ //Everything in here requires google maps
       visible: true
     },
     info: {
-      useInfobox: false
+      useInfobox: false,
+      opened: true,
+      toggleInfoOnClick: true,
+      openAfterDrag: true
     }
   };
 
@@ -151,18 +148,19 @@ if(google){ //Everything in here requires google maps
 
     var object = function(){
 
-      console.log("defaults.pin");
-      console.log(defaults.pin);
-
       this.options = util.merge(defaults.pin, opts);
       this.style = geoloqi.maps.styles[this.options.style];
-
-      console.log("this.options");
-      console.log(this.options);
 
       this.options.icon = this.style.marker.icon;
       this.options.shadow = this.style.marker.shadow;
       this.options.position = new google.maps.LatLng(this.options.lat, this.options.lng);
+
+
+      if(this.options.editable){
+        opts.draggable = true;
+      } else {
+        opts.draggable = false;
+      }
 
       (init) ? this.initPin() : '';
     };
@@ -170,6 +168,7 @@ if(google){ //Everything in here requires google maps
     object.prototype = {
 
       showOnMap: function(){
+        this.marker.setVisible(true);
         this.marker.setMap(defaults.map);
       },
 
@@ -177,16 +176,32 @@ if(google){ //Everything in here requires google maps
         this.marker.setMap(null);
       },
 
-      getPosition: function(){
-        return this.marker.getPosition();
+      setDraggable: function(state){
+        this.marker.setDraggable(state);
+      },
+
+      getDraggable: function() {
+        return this.marker.getDraggable();
+      },
+
+      toggleDraggable: function(){
+        if(this.getDraggable()){
+          this.setDraggable(false);
+        } else {
+          this.setDraggable(true);
+        }
       },
 
       moveTo: function(latLng){
-        this.marker.setPosition(latLng);
+        this.setPosition(latLng);
       },
 
       setPosition: function(latLng){
         this.marker.setPosition(latLng);
+      },
+
+      getPosition: function(){
+        return this.marker.getPosition();
       },
 
       initPin: function() {
@@ -235,7 +250,7 @@ if(google){ //Everything in here requires google maps
             this.circles[i].circle.setMap(null);
           }
         }
-      };
+      }
 
       this.showCircles = function(){
         if(this.circles.length > 0){
@@ -243,26 +258,26 @@ if(google){ //Everything in here requires google maps
             this.circles[i].circle.setMap(defaults.map);
           }
         }
-      };
+      }
 
       this.showOnMap = function(){
         this.showCircles();
         this.line.setMap(defaults.map);
         this.handle.setMap(defaults.map);
         this.marker.setMap(defaults.map);
-      };
+      }
 
       this.removeFromMap = function() {
         this.hideCircles();
         this.line.setMap(null);
         this.handle.setMap(null);
         this.marker.setMap(null);
-      };
+      }
 
       //  Get the Radius of the outermost circle
       this.getRadius = function(){
         return this.circles[0].circle.getRadius();
-      };
+      }
 
       // Setup Circles
       this.setupCircles = function(radius, visible){
@@ -272,7 +287,7 @@ if(google){ //Everything in here requires google maps
           visible = typeof(this.marker.getMap()) == "object" ? true : false;
         }
 
-       this.hideCircles();
+        this.hideCircles();
 
         this.circles = [];
 
@@ -281,12 +296,13 @@ if(google){ //Everything in here requires google maps
             circle: new google.maps.Circle({
               center: this.getPosition(),
               radius: radius - (i*3),
-              fillColor: this.style.circles.color,
-              fillOpacity: this.style.circles.opacity,
-              strokeColor: this.style.circles.stroke.color,
-              strokeWeight: this.style.circles.stroke.weight,
-              strokeOpacity: this.style.circles.stroke.opacity,
-              map: (visible) ? defaults.map : null
+              fillColor: this.style.circles.fillColor,
+              fillOpacity: this.style.circles.fillOpacity,
+              strokeColor: this.style.circles.strokeColor,
+              strokeWeight: this.style.circles.strokeWeight,
+              strokeOpacity: this.style.circles.strokeOpacity,
+              map: (visible) ? defaults.map : null,
+              zIndex: -1
             }),
             index: i
           });
@@ -315,18 +331,40 @@ if(google){ //Everything in here requires google maps
       this.lockPin = function(){
         this.marker.setDraggable(false);
         this.hideHandle();
+        this.isLocked = true;
       }
 
       this.unlockPin = function() {
         this.marker.setDraggable(true);
         this.showHandle();
+        this.isLocked = false;
+      }
+
+      this.toggleLock = function() {
+        if(this.isLocked){
+          this.unlockPin();
+          this.isLocked = false;
+        } else {
+          this.lockPin();
+          this.isLocked = true;
+        }
       }
 
       this.initRadius = function(){
         var self = this;
-        this.handle = new google.maps.Marker(this.handleOptions);
         this.line = new google.maps.Polyline(this.lineOptions);
+        this.handle = new google.maps.Marker(this.handleOptions);
         this.circles = [];
+
+        this.options.draggable = this.options.editable;
+
+        if(this.options.editable){
+          this.unlockPin();
+          this.isLocked = false;
+        } else {
+          this.lockPin();
+          this.isLocked = true;
+        };
 
         //Setup Circles
         this.setupCircles(this.options.radius);
@@ -396,7 +434,6 @@ if(google){ //Everything in here requires google maps
 
         google.maps.event.addListener(this.handle, "dragend", function(event) {
           var bounds = defaults.map.getBounds();
-          console.log(bounds.contains(self.handle.getPosition()));
           if(!bounds.contains(self.handle.getPosition())){
             geoloqi.maps.helpers.fitMapToRadius(self.marker.getPosition(), self.getRadius());
           }
@@ -424,7 +461,7 @@ if(google){ //Everything in here requires google maps
 
       this.options = util.merge(defaults.pin, opts);
       this.style = geoloqi.maps.styles[this.options.style];
-      this.infoOptions = util.merge(util.merge(defaults.info, opts), this.style.info);
+      this.infoOptions = util.merge(util.merge(defaults.info, this.style.info), opts);
 
       this.removeFromMap = function(){
         this.info.close();
@@ -436,23 +473,21 @@ if(google){ //Everything in here requires google maps
         this.marker.setMap(defaults.map);
       };
 
-      this.hideInfobox = function() {
-        if(typeof Infobox != "undefined"){
-          if(this.info instanceof Infobox){
-            this.info.hide();
-          }
-        } else {
-          this.info.close(defaults.map, this.marker);
-        }
+      this.hideInfo = function() {
+        this.opened = false;
+        this.info.close();
       };
 
-      this.showInfobox = function() {
-        if(typeof Infobox != "undefined"){
-          if(this.info instanceof Infobox){
-            this.info.show();
-          }
+      this.showInfo = function() {
+        this.opened = true;
+        this.info.open(defaults.map, this.marker);
+      };
+
+      this.toggleInfo = function() {
+        if(this.opened) {
+          this.hideInfo();
         } else {
-          this.info.open(defaults.map, this.marker);
+          this.showInfo();
         }
       };
 
@@ -460,35 +495,91 @@ if(google){ //Everything in here requires google maps
         this.info.setContent(html);
       };
 
+      this.setInfo = function(obj, open){
+        (typeof open == 'undefined') ? false : open;
+        this.info.close();
+        this.info = obj;
+        this.opened = open;
+
+        if(open){
+          this.info.open(defaults.map, this.marker);
+        } else {
+          this.close();
+        }
+
+        google.maps.event.addListener(this.info, 'closeclick', function(){
+          self.opened = false;
+        });
+      };
+
       this.initInfobox = function(){
         var self = this;
 
-        //@TODO isClickable
-        //@TODO click to toggle info
+        this.opened = this.infoOptions.opened; //Only for use infobox
 
-        if(this.infoOptions.useInfobox){
-          this.info = new InfoBox(this.infoOptions);
+        if(typeof this.options.content == 'string'){
+          if(this.infoOptions.useInfobox){
+            this.info = new InfoBox(this.infoOptions);
+          } else {
+            this.info = new google.maps.InfoWindow(this.infoOptions);
+          }
+        } else if (this.options.content instanceof InfoBox || this.options.content instanceof google.maps.InfoWindow) {
+          this.info = this.options.content;
+          this.options.toggleInfoOnClick = true;
+          this.opened = false;
         } else {
-          this.info = new google.maps.InfoWindow(this.infoOptions);
+          this.info = null;
         }
 
+        if(this.options.toggleInfoOnClick){
+          this.isClickable = true;
+          this.marker.setClickable(true);
+          this.clickEvent = google.maps.event.addListener(this.marker, "click", function(event) {
+            self.toggleInfo();
+          });
+        } else {
+          this.isClickable = false;
+          this.marker.setClickable(false);
+          if(typeof this.clickEvent == 'object'){
+            google.maps.event.removeListener(this.clickEvent);
+          }
+        };
+
         google.maps.event.addListener(this.marker, "dragstart", function(event) {
-          self.hideInfobox();
+          self.hideInfo();
         });
 
-        google.maps.event.addListener(this.marker, "dragend", function(event) {
-          if(!self.options.autopan){
-            self.showInfobox();
-          }
-        });
+        google.maps.event.addListenerOnce(defaults.map, 'idle', function(event){
 
-        google.maps.event.addListener(defaults.map, 'idle', function(event){
           if(self.options.autopan){
-            self.showInfobox();
+            google.maps.event.addListener(defaults.map, 'idle', function(event){
+              if(!self.opened && self.options.openAfterDrag){
+                self.showInfo();
+              }
+            });
+          } else {
+            google.maps.event.addListener(self.marker, "dragend", function(event) {
+              if(!self.opened && self.options.openAfterDrag){
+                self.showInfo();
+              }
+            });
           }
+
         });
 
-        this.info.open(defaults.map, this.marker);
+        if(this.info){
+          google.maps.event.addListener(this.info, 'close', function(){
+            self.opened = false;
+          });
+
+          google.maps.event.addListener(this.info, 'closeclick', function(){
+            self.opened = false;
+          });
+        }
+
+        if(this.infoOptions.opened && this.reference === false){
+          this.info.open(defaults.map, this.marker);
+        };
 
       };
 
@@ -527,11 +618,16 @@ if(google){ //Everything in here requires google maps
         var self = this;
 
         google.maps.event.addListener(this.handle, "dragstart", function(event) {
-          self.hideInfobox();
+          console.log(self);
+          if(self.opened){
+            self.hideInfo();
+          }
         });
 
         google.maps.event.addListener(this.handle, "dragend", function(event) {
-          self.showInfobox();
+          if(!this.opened){
+            self.showInfo();
+          }
         });
       }
 
@@ -547,9 +643,21 @@ if(google){ //Everything in here requires google maps
 
     return new object();
   };
+
+  //Helper to generate styled info boxes
+  geoloqi.maps.InfoBox = function(content, styleKey){
+
+    style = (typeof styleKey == 'undefined') ? geoloqi.maps.styles.default : geoloqi.maps.styles[style];
+    console.log(style);
+    options = util.merge(defaults.info, style.info);
+    console.log(options);
+    options.content = content;
+
+    return new InfoBox(options);
+  };
+
 }; //End Google Maps
+
   return geoloqi;
 
 }(google));
-
-//@TODO Make sure google exists before passing it in
