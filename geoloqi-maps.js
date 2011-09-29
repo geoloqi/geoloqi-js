@@ -120,7 +120,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
     },
     info: {
       useInfobox: false,
-      opened: true,
+      opened: false,
       toggleInfoOnClick: true,
       openAfterDrag: true
     }
@@ -165,7 +165,6 @@ if(typeof google == "object"){ //Everything in here requires google maps
       this.options.icon = this.style.marker.icon;
       this.options.shadow = this.style.marker.shadow;
       this.options.position = new google.maps.LatLng(this.options.lat, this.options.lng);
-
 
       if(this.options.editable){
         opts.draggable = true;
@@ -217,7 +216,6 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
       initPin: function() {
         var self = this;
-
         this.marker = new google.maps.Marker(this.options);
 
         google.maps.event.addListener(this.marker, "dragend", function(event) {
@@ -247,11 +245,16 @@ if(typeof google == "object"){ //Everything in here requires google maps
       // ==========
       this.options = util.merge(defaults.pin, opts);
       this.style = geoloqi.maps.styles[this.options.style];
+      geoloqiLog("options", this.options.map);
 
       this.handleOptions = util.merge(defaults.handle, this.style.handle);
       this.handleOptions.position = new google.maps.LatLng(this.options.lat, this.options.lng);
-
+      this.handleOptions.map = this.options.map;
+      geoloqiLog("handle options", this.handleOptions.map);
+      
       this.lineOptions = util.merge(defaults.line, this.style.line);
+      this.lineOptions.map = this.options.map;
+      geoloqiLog("line options", this.lineOptions.map);
 
       // Methods
       // =======
@@ -335,8 +338,9 @@ if(typeof google == "object"){ //Everything in here requires google maps
       }
 
       this.showHandle = function() {
-       this.line.setMap(defaults.map);
-       this.handle.setMap(defaults.map);
+        this.delayedHandle == true;
+        this.line.setMap(defaults.map);
+        this.handle.setMap(defaults.map);
       }
 
       this.lockPin = function(){
@@ -347,7 +351,11 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
       this.unlockPin = function() {
         this.marker.setDraggable(true);
-        this.showHandle();
+        geoloqiLog("What is the map", this.marker.getMap());
+        if(this.marker.getMap()){
+          console.log('doh4');
+          this.showHandle();
+        }
         this.isLocked = false;
       }
 
@@ -378,7 +386,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
         };
 
         //Setup Circles
-        this.setupCircles(this.options.radius);
+        this.setupCircles(this.options.radius, !!this.options.map);
 
         //Setup The Handle Position and Line
         this.updateHandle();
@@ -403,20 +411,26 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
         // Center map on the pin, show info, handle and Line
         
+        this.delayedHandle = false;
+
         if(self.options.autopan){
           google.maps.event.addListener(defaults.map, 'idle', function(event){
-            if(!self.isLocked){
+            if(!self.isLocked && this.delayedHandle){
+              console.log('doh1');
               self.showHandle();  
             } 
+            this.delayedHandle == true;
           });
         } else {
-        google.maps.event.addListener(this.marker, "dragend", function(event) {
-          if(!self.options.autopan){
-            self.showHandle();
-          }
-        });
-  
+          google.maps.event.addListener(this.marker, "dragend", function(event) {
+            if(!self.options.autopan && this.delayedHandle){
+              console.log('doh2');
+              self.showHandle();
+            }
+            this.delayedHandle == true;
+          });
         }
+
         //Update Radius on handle drag
         google.maps.event.addListener(this.handle, "drag", function(event) {
 
@@ -494,7 +508,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
       this.showInfo = function() {
         this.opened = true;
-        this.delayed = true;
+        this.delayedInfobox = true;
         this.info.open(defaults.map, this.marker);
       };
 
@@ -531,6 +545,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
         var self = this;
 
         this.opened = this.infoOptions.opened; //Only for use infobox
+        
         try{
           if(typeof this.options.content == 'string'){
             if(this.infoOptions.useInfobox){
@@ -568,18 +583,18 @@ if(typeof google == "object"){ //Everything in here requires google maps
         google.maps.event.addListener(this.marker, "dragstart", function(event) {
           self.hideInfo();
         });
-        this.delayed = false;
+        
+        this.delayedInfobox = false;
+        
         if(self.options.autopan){
           google.maps.event.addListener(defaults.map, 'idle', function(event){
-            if(!self.opened && self.options.openAfterDrag && self.delayed){
-              geoloqiLog('Shown');
+            if(!self.opened && self.options.openAfterDrag && self.delayedInfobox){
               self.showInfo();
             }
           });
         } else {
           google.maps.event.addListener(this.marker, "dragend", function(event) {
-            if(!self.opened && self.options.openAfterDrag && self.delayed){
-              geoloqiLog('Shown');
+            if(!self.opened && self.options.openAfterDrag && self.delayedInfobox){
               self.showInfo();
             }
           });
@@ -662,19 +677,19 @@ if(typeof google == "object"){ //Everything in here requires google maps
   };
 
   //Helper to generate styled info boxes
-    geoloqi.maps.InfoBox = function(content, styleKey){
+  geoloqi.maps.InfoBox = function(content, styleKey){
 
-      style = (typeof styleKey == 'undefined') ? geoloqi.maps.styles.default : geoloqi.maps.styles[styleKey];
-      
-      options = util.merge(defaults.info, style.info);
-      options.content = content;
-      
-      try{
-        return new InfoBox(options);
-      } catch(e) {
-        geoloqiLog("ERROR : It looks like "+ e.arguments[0] + " was not defined. Are you sure its loaded?", e);
-      }
+    style = (typeof styleKey == 'undefined') ? geoloqi.maps.styles.default : geoloqi.maps.styles[styleKey];
     
+    options = util.merge(defaults.info, style.info);
+    options.content = content;
+    
+    try{
+      return new InfoBox(options);
+    } catch(e) {
+      geoloqiLog("ERROR : It looks like "+ e.arguments[0] + " was not defined. Are you sure its loaded?", e);
+    }
+  
   };
 
 }; //End Google Maps required zone
