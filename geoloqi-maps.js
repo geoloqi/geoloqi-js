@@ -177,9 +177,10 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
     object.prototype = {
 
-      showOnMap: function(){
+      showOnMap: function(map){
+        map = (typeof map == "undefined") ? map : defaults.map;
         this.marker.setVisible(true);
-        this.marker.setMap(defaults.map);
+        this.marker.setMap(map);
       },
 
       removeFromMap: function() {
@@ -274,11 +275,13 @@ if(typeof google == "object"){ //Everything in here requires google maps
         }
       }
 
-      this.showOnMap = function(){
+      this.showOnMap = function(map){
+        map = (typeof map == "undefined") ? map : defaults.map;
+
         this.showCircles();
-        this.line.setMap(defaults.map);
-        this.handle.setMap(defaults.map);
-        this.marker.setMap(defaults.map);
+        this.line.setMap(map);
+        this.handle.setMap(map);
+        this.marker.setMap(map);
       }
 
       this.removeFromMap = function() {
@@ -315,7 +318,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
               strokeColor: this.style.circles.strokeColor,
               strokeWeight: this.style.circles.strokeWeight,
               strokeOpacity: this.style.circles.strokeOpacity,
-              map: (visible) ? defaults.map : null,
+              map: (visible) ? this.marker.getMap() : null,
               zIndex: -1
             }),
             index: i
@@ -333,14 +336,13 @@ if(typeof google == "object"){ //Everything in here requires google maps
       }
 
       this.hideHandle = function() {
-       this.line.setMap(null);
-       this.handle.setMap(null);
+        this.line.setMap(null);
+        this.handle.setMap(null);
       }
 
       this.showHandle = function() {
-        this.delayedHandle == true;
-        this.line.setMap(defaults.map);
-        this.handle.setMap(defaults.map);
+        this.line.setMap(this.marker.getMap());
+        this.handle.setMap(this.marker.getMap());
       }
 
       this.lockPin = function(){
@@ -496,9 +498,10 @@ if(typeof google == "object"){ //Everything in here requires google maps
         this.marker.setMap(null);
       };
 
-      this.showOnMap = function(){
-        this.info.open(defaults.map, this.marker);
-        this.marker.setMap(defaults.map);
+      this.showOnMap = function(map){
+        map = (typeof map == "undefined") ? map : defaults.map;
+        this.info.open(map, this.marker);
+        this.marker.setMap(map);
       };
 
       this.hideInfo = function() {
@@ -640,10 +643,11 @@ if(typeof google == "object"){ //Everything in here requires google maps
         this.hideCircles();
       };
 
-      this.showOnMap = function() {
-        this.marker.setMap(defaults.map);
-        this.handle.setMap(defaults.map);
-        this.line.setMap(defaults.map);
+      this.showOnMap = function(map) {
+        map = (typeof map == "undefined") ? map : defaults.map;
+        this.marker.setMap(map);
+        this.handle.setMap(map);
+        this.line.setMap(map);
         this.hideCircles();
       };
 
