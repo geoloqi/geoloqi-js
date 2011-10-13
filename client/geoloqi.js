@@ -12,6 +12,7 @@ var geoloqi = (function () {
   var self = this;
   var exports = {};
   var receiverUrl = 'https://api.geoloqi.com/receiver.html';
+  var oauthUrl = 'https://api.geoloqi.com/1/oauth/authorize';
   var geoloqiRootId = 'geoloqi-root';
   var iframe = null;
 
@@ -26,9 +27,22 @@ var geoloqi = (function () {
   }
   exports.init = init;
 
-  /* TODO */
-  function auth() {
-    if(geoloqi.cookieUtil.read('_geoloqi_auth')) {
+  function config() {
+    
+  }
+
+  function auth(popup) {
+    var popup = false;
+    if(popup == true) {
+    } else {
+      window.location = oauthUrl;
+    }
+    
+    util.cookies.create('_geoloqi_auth', JSON.stringify({'access_token': 'FJQbwq9', 'expires_in': 3600}), 1);
+    // util.cookies.erase('_geoloqi_auth');
+    console.log(util.cookies.read('_geoloqi_auth'));
+    if(util.cookies.read('_geoloqi_auth')) {
+      
     }
   }
   exports.auth = auth;
@@ -84,13 +98,13 @@ var geoloqi = (function () {
     return result;
   }
 
-  util.cookies = function() {
+  util.cookies = (function() {
     var exports = {};
 
-    function create(name, value, days) {
+    function create(name, value, secondsUntilExpire) {
       if (days) {
         var date = new Date();
-        date.setTime(date.getTime()+(days*24*60*60*1000));
+        date.setTime(date.getTime()+(secondsUntilExpire*1000));
         var expires = "; expires="+date.toGMTString();
       }
       else var expires = "";
@@ -111,12 +125,12 @@ var geoloqi = (function () {
     exports.read = read;
 
     function erase(name) {
-      createCookie(name,"",-1);
+      create(name,"",-1);
     }
     exports.erase = erase;
 
     return exports;
-  }
+  }());
 
 	util.guid = function() {
 		return 'g' + (Math.random() * (1<<30)).toString(16).replace('.', '');

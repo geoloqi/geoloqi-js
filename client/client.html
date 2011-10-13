@@ -3,6 +3,8 @@
     <script type="text/javascript" src="geoloqi.js"></script>
     <script type="text/javascript">
       function testCall() {
+        
+        //geoloqi.config({'client_id': 'abcd'});
         geoloqi.accessToken = '1234'; // This needs to be worked on.
         geoloqi.get('account/profile', function(result, error) {
           console.log(result);
@@ -13,6 +15,7 @@
   </head>
   <body>
     <div id="geoloqi-root" style="display:none;"></div>
+    <a href="#" onclick="geoloqi.auth(); return false">Auth</a>
     <a href="#" onclick="testCall(); return false">Test!</a>
   </body>
 </html>
