@@ -9,12 +9,7 @@ window.geoloqiLog = function(){
   }
 };
 
-//Make Google Maps Optional
-if(typeof google == 'undefined'){
-  var google = null;
-};
-
-var geoloqi = ( function (google) {
+var geoloqi = ( function () {
 
   //Public Facing Object
   var geoloqi = {},
@@ -45,7 +40,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
   geoloqi.maps = {};
 
   //Sets the default map everything should reference
-  geoloqi.maps.init = function(newMap){
+  geoloqi.maps.setDefault = function(newMap){
     if(map instanceof google.maps.Map){
       defaults.map = newMap;
       defaults.pin.map = newMap;
@@ -62,9 +57,16 @@ if(typeof google == "object"){ //Everything in here requires google maps
   geoloqi.maps.styles = {};
 
   //Add a style that can be reused later
-  geoloqi.maps.styles.define = function(name, style){
+  geoloqi.maps.styles.define = function(name, style, makeDefault){
+    makeDefault = (typeof makeDefault == "undefined") ? false : makeDefault;
+
     geoloqi.maps.styles[name] = util.merge(geoloqi.maps.styles['default'], style);
-  };
+    
+    if(makeDefault){
+      geoloqi.maps.styles.setDefault(name);
+    }
+  
+};
 
   //Set a new default style
   geoloqi.maps.styles.setDefault = function(name){
@@ -203,7 +205,16 @@ if(typeof google == "object"){ //Everything in here requires google maps
         }
       },
 
-      moveTo: function(latLng){
+      getMap: function(){
+        return this.marker.getMap();
+      },
+
+      moveTo: function(latLng, autopan){
+        autopan = (typeof autopan == "undefined") ? false : autopan;
+        if(autopan){
+          mapToPan = this.getMap();
+          mapToPan.panTo(latLng);
+        }
         this.setPosition(latLng);
       },
 
@@ -246,16 +257,13 @@ if(typeof google == "object"){ //Everything in here requires google maps
       // ==========
       this.options = util.merge(defaults.pin, opts);
       this.style = geoloqi.maps.styles[this.options.style];
-      geoloqiLog("options", this.options.map);
 
       this.handleOptions = util.merge(defaults.handle, this.style.handle);
       this.handleOptions.position = new google.maps.LatLng(this.options.lat, this.options.lng);
       this.handleOptions.map = this.options.map;
-      geoloqiLog("handle options", this.handleOptions.map);
-      
+
       this.lineOptions = util.merge(defaults.line, this.style.line);
       this.lineOptions.map = this.options.map;
-      geoloqiLog("line options", this.lineOptions.map);
 
       // Methods
       // =======
@@ -270,7 +278,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
       this.showCircles = function(){
         if(this.circles.length > 0){
           for(var i = 0; i<this.circles.length; i++) {
-            this.circles[i].circle.setMap(defaults.map);
+            this.circles[i].circle.setMap(this.getMap());
           }
         }
       }
@@ -301,7 +309,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
         radius = typeof(radius) != 'undefined' ? radius : this.radius; //default to this.radius
 
         if (typeof(visible) == 'undefined'){
-          visible = typeof(this.marker.getMap()) == "object" ? true : false;
+          visible = typeof(this.getMap()) == "object" ? true : false;
         }
 
         this.hideCircles();
@@ -318,7 +326,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
               strokeColor: this.style.circles.strokeColor,
               strokeWeight: this.style.circles.strokeWeight,
               strokeOpacity: this.style.circles.strokeOpacity,
-              map: (visible) ? this.marker.getMap() : null,
+              map: (visible) ? this.getMap() : null,
               zIndex: -1
             }),
             index: i
@@ -341,8 +349,8 @@ if(typeof google == "object"){ //Everything in here requires google maps
       }
 
       this.showHandle = function() {
-        this.line.setMap(this.marker.getMap());
-        this.handle.setMap(this.marker.getMap());
+        this.line.setMap(this.getMap());
+        this.handle.setMap(this.getMap());
       }
 
       this.lockPin = function(){
@@ -353,9 +361,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
       this.unlockPin = function() {
         this.marker.setDraggable(true);
-        geoloqiLog("What is the map", this.marker.getMap());
-        if(this.marker.getMap()){
-          console.log('doh4');
+        if(this.getMap()){
           this.showHandle();
         }
         this.isLocked = false;
@@ -417,19 +423,17 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
         if(self.options.autopan){
           google.maps.event.addListener(defaults.map, 'idle', function(event){
-            if(!self.isLocked && this.delayedHandle){
-              console.log('doh1');
+            if(!self.isLocked && self.delayedHandle){
               self.showHandle();  
             } 
-            this.delayedHandle == true;
+            self.delayedHandle = true;
           });
         } else {
           google.maps.event.addListener(this.marker, "dragend", function(event) {
-            if(!self.options.autopan && this.delayedHandle){
-              console.log('doh2');
+            if(!self.isLocked && self.delayedHandle){
               self.showHandle();
             }
-            this.delayedHandle == true;
+            self.delayedHandle = true;
           });
         }
 
@@ -700,4 +704,4 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
   return geoloqi;
 
-}(google));
+}());
