@@ -172,9 +172,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
       centerHere: function(){
         var mapToPan = this.getMap();
-     
-        //mapToPan.panTo(this.getPosition);
-
+        mapToPan.panTo(this.getPosition());
         return this;
       },
 
@@ -362,6 +360,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
         this.marker.setDraggable(false);
         this.hideHandle();
         this.isLocked = true;
+        return this;
       }
 
       this.unlockPin = function() {

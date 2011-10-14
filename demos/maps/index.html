@@ -23,7 +23,7 @@
 
       map = new google.maps.Map(document.getElementById('map'),{
         zoom: 6,
-        center: new google.maps.LatLng(46.5246, -122.6834),
+        center: new google.maps.LatLng(0, 0),
         mapTypeId: google.maps.MapTypeId.ROADMAP
       });
 
@@ -180,7 +180,7 @@
       });
       console.log(pinWithRadius2);
 
-      pinWithRadius2.showOnMap().lockPin();
+      pinWithRadius2.showOnMap().lockPin().centerHere();
 
     }//End init function
 
