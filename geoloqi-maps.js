@@ -172,17 +172,24 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
       centerHere: function(){
         var mapToPan = this.getMap();
-        mapToPan.panTo(this.getPosition);
-      }
+     
+        //mapToPan.panTo(this.getPosition);
+
+        return this;
+      },
 
       showOnMap: function(map){
-        map = (typeof map == "undefined") ? map : defaults.map;
+        map = (typeof map != "undefined") ? map : defaults.map;
         this.marker.setVisible(true);
         this.marker.setMap(map);
+     
+        return this;
       },
 
       removeFromMap: function() {
         this.marker.setMap(null);
+     
+        return this;
       },
 
       setDraggable: function(state){
@@ -228,6 +235,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
         google.maps.event.addListener(this.marker, "dragend", function(event) {
 
           if(self.options.autopan){
+
             map.panTo(self.getPosition());
           };
 
@@ -279,19 +287,21 @@ if(typeof google == "object"){ //Everything in here requires google maps
       }
 
       this.showOnMap = function(map){
-        map = (typeof map == "undefined") ? map : defaults.map;
-
+        newMap = (typeof map != "undefined") ? map : defaults.map;
         this.showCircles();
-        this.line.setMap(map);
-        this.handle.setMap(map);
-        this.marker.setMap(map);
+        this.line.setMap(newMap);
+        this.handle.setMap(newMap);
+        this.marker.setMap(newMap);
+        return this;
       }
 
       this.removeFromMap = function() {
+        console.log('hide');
         this.hideCircles();
         this.line.setMap(null);
         this.handle.setMap(null);
         this.marker.setMap(null);
+        return this;
       }
 
       //  Get the Radius of the outermost circle
@@ -498,7 +508,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
       };
 
       this.showOnMap = function(map){
-        map = (typeof map == "undefined") ? map : defaults.map;
+        map = (typeof map != "undefined") ? map : defaults.map;
         this.info.open(map, this.marker);
         this.marker.setMap(map);
       };
@@ -643,7 +653,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
       };
 
       this.showOnMap = function(map) {
-        map = (typeof map == "undefined") ? map : defaults.map;
+        map = (typeof map != "undefined") ? map : defaults.map;
         this.marker.setMap(map);
         this.handle.setMap(map);
         this.line.setMap(map);
