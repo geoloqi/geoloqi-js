@@ -1,7 +1,8 @@
-geoloqi.Socket = function ('type', 'auth', onLocation, onError) {
+geoloqi.Socket = function (type, auth, onLocation, onError) {
   
   var object = function () {
     var self = this;
+
     var api = "https://subscribe.geoloqi.com:443";
     
     this.auth = auth;
@@ -14,15 +15,20 @@ geoloqi.Socket = function ('type', 'auth', onLocation, onError) {
     this.start = function(){
     
       this.socket.on('enter authentication', function(data) {
+        console.log("enter auth");
         this.socket.emit('token', this.type+"-"+this.auth);
       });
 
       this.socket.on('location', function(data) {
+        console.log("location");
         console.log('before');
         console.log(data);
+        
         var data = eval("("+data+")");
+        
         console.log('after');
         console.log(data);
+        
         if(isThereAnError){
           this.onError(data);
         } else {
@@ -39,4 +45,3 @@ geoloqi.Socket = function ('type', 'auth', onLocation, onError) {
   return new object();
 };
 
-mysocket= new geoloqi.Socket(options);
