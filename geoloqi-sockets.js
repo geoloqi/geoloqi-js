@@ -14,7 +14,7 @@ geoloqi.Socket = function ('type', 'auth', onLocation, onError) {
     this.start = function(){
     
       this.socket.on('enter authentication', function(data) {
-        this.socket.emit('token', this.type+this.auth);
+        this.socket.emit('token', this.type+"-"+this.auth);
       });
 
       this.socket.on('location', function(data) {
@@ -38,3 +38,5 @@ geoloqi.Socket = function ('type', 'auth', onLocation, onError) {
 
   return new object();
 };
+
+mysocket= new geoloqi.Socket(options);
