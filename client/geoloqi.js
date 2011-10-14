@@ -129,7 +129,6 @@ var geoloqi = (function () {
   }
 
   util.cookie = (function() {
-//    var self = this;
     var exports = {};
 
     function set(value, secondsUntilExpire) {
