@@ -9,13 +9,11 @@ window.geoloqiLog = function(){
   }
 };
 
-var geoloqi = ( function () {
+geoloqi.maps = (function() {
 
   //Public Facing Object
-  var geoloqi = {},
-
-  //Private Utility Helpers
-  util = {};
+  var exports = {},
+      util = {};
 
   util.merge = function(obj1, obj2){
     var obj3 = {};
@@ -24,12 +22,8 @@ var geoloqi = ( function () {
     return obj3;
   }
 
-if(typeof google == "object"){ //Everything in here requires google maps
-
-  geoloqi.maps = {};
-
   //Sets the default map everything should reference
-  geoloqi.maps.setDefault = function(newMap){
+  exports.setDefault = function(newMap){
     if(map instanceof google.maps.Map){
       defaults.map = newMap;
       defaults.pin.map = newMap;
@@ -38,31 +32,30 @@ if(typeof google == "object"){ //Everything in here requires google maps
     }
   };
 
-  geoloqi.maps.getMap = function(){
+  exports.getMap = function(){
     return defaults.map;
   };
 
   //Public Methods for Styles
-  geoloqi.maps.styles = {};
+  exports.styles = {};
 
   //Add a style that can be reused later
-  geoloqi.maps.styles.define = function(name, style, makeDefault){
+  exports.styles.define = function(name, style, makeDefault){
     makeDefault = (typeof makeDefault == "undefined") ? false : makeDefault;
 
-    geoloqi.maps.styles[name] = util.merge(geoloqi.maps.styles['default'], style);
-    
-    if(makeDefault){
-      geoloqi.maps.styles.setDefault(name);
-    }
-  
-};
+    exports.styles[name] = util.merge(exports.styles['default'], style);
 
-  //Set a new default style
-  geoloqi.maps.styles.setDefault = function(name){
-    geoloqi.maps.styles.default = geoloqi.maps.styles[name];
+    if(makeDefault){
+      exports.styles.setDefault(name);
+    }
   };
 
-  geoloqi.maps.styles.default = {
+  //Set a new default style
+  exports.styles.setDefault = function(name){
+    exports.styles.default = exports.styles[name];
+  };
+
+  exports.styles.default = {
     marker:{},
     circles: {
       count: 1,
@@ -83,7 +76,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
     }
   };
 
-  geoloqi.maps.styles.geoloqi_js = geoloqi.maps.styles.default;
+  exports.styles.geoloqi_js = exports.styles.default;
 
   var defaults = {
     map: null,
@@ -103,8 +96,8 @@ if(typeof google == "object"){ //Everything in here requires google maps
       map: null
     },
     handle: {
-      icon: geoloqi.maps.styles['default'].handle.icon,
-      shadow: geoloqi.maps.styles['default'].handle.shadow,
+      icon: exports.styles['default'].handle.icon,
+      shadow: exports.styles['default'].handle.shadow,
       map: null,
       draggable: true,
       raiseOnDrag: false,
@@ -120,10 +113,10 @@ if(typeof google == "object"){ //Everything in here requires google maps
   };
 
   //Public Helper Methods
-  geoloqi.maps.helpers = {};
+  exports.helpers = {};
 
   //Zoom and center map to a radius
-  geoloqi.maps.helpers.fitMapToRadius = function (center, radius) {
+  exports.helpers.fitMapToRadius = function (center, radius) {
     var bounds = new google.maps.LatLngBounds();
     var geo = google.maps.geometry.spherical;
     bounds.extend(geo.computeOffset(center, radius, 0));
@@ -134,7 +127,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
   };
 
   //Returns the ideal radius for a map
-  geoloqi.maps.helpers.getIdealRadiusForMap = function(){
+  exports.helpers.getIdealRadiusForMap = function(){
     var bounds = map.getBounds();
     var ne = bounds.getNorthEast();
     var sw = bounds.getSouthWest();
@@ -143,17 +136,17 @@ if(typeof google == "object"){ //Everything in here requires google maps
   }
 
   //Namespace for pins
-  geoloqi.maps.pins = {};
+  exports.pins = {};
 
   //Basic Pin
-  geoloqi.maps.pins.Basic = function(opts, init){
+  exports.pins.Basic = function(opts, init){
 
     init = (typeof init != "undefined") ? init : true; //Turn on prototypes
 
     var object = function(){
 
       this.options = util.merge(defaults.pin, opts);
-      this.style = geoloqi.maps.styles[this.options.style];
+      this.style = exports.styles[this.options.style];
 
       this.options.icon = this.style.marker.icon;
       this.options.shadow = this.style.marker.shadow;
@@ -180,13 +173,13 @@ if(typeof google == "object"){ //Everything in here requires google maps
         map = (typeof map != "undefined") ? map : defaults.map;
         this.marker.setVisible(true);
         this.marker.setMap(map);
-     
+
         return this;
       },
 
       removeFromMap: function() {
         this.marker.setMap(null);
-     
+
         return this;
       },
 
@@ -247,7 +240,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
   };
 
   //A Pin With A Radius
-  geoloqi.maps.pins.WithRadius = function(opts, init, inherit) {
+  exports.pins.WithRadius = function(opts, init, inherit) {
 
     inherit = (typeof inherit != "undefined") ? inherit : true; //Turn on prototypes
     init = (typeof init != "undefined") ? init : true; //Turn on prototypes
@@ -257,7 +250,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
       // Properties
       // ==========
       this.options = util.merge(defaults.pin, opts);
-      this.style = geoloqi.maps.styles[this.options.style];
+      this.style = exports.styles[this.options.style];
 
       this.handleOptions = util.merge(defaults.handle, this.style.handle);
       this.handleOptions.position = new google.maps.LatLng(this.options.lat, this.options.lng);
@@ -422,14 +415,14 @@ if(typeof google == "object"){ //Everything in here requires google maps
         });
 
         // Center map on the pin, show info, handle and Line
-        
+
         this.delayedHandle = false;
 
         if(self.options.autopan){
           google.maps.event.addListener(defaults.map, 'idle', function(event){
             if(!self.isLocked && self.delayedHandle){
-              self.showHandle();  
-            } 
+              self.showHandle();
+            }
             self.delayedHandle = true;
           });
         } else {
@@ -473,7 +466,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
         google.maps.event.addListener(this.handle, "dragend", function(event) {
           var bounds = defaults.map.getBounds();
           if(!bounds.contains(self.handle.getPosition())){
-            geoloqi.maps.helpers.fitMapToRadius(self.marker.getPosition(), self.getRadius());
+            exports.helpers.fitMapToRadius(self.marker.getPosition(), self.getRadius());
           }
         });
 
@@ -484,13 +477,13 @@ if(typeof google == "object"){ //Everything in here requires google maps
       (init) ? this.initRadius() : '';
     };
 
-    (inherit) ? object.prototype = new geoloqi.maps.pins.Basic(opts) : '';
+    (inherit) ? object.prototype = new exports.pins.Basic(opts) : '';
 
     return new object();
   };
 
   //A Pin With An Infobox
-  geoloqi.maps.pins.WithInfobox = function(opts, init, inherit) {
+  exports.pins.WithInfobox = function(opts, init, inherit) {
 
     inherit = (typeof inherit != "undefined") ? inherit : true; //Turn on prototypes
     init = (typeof init != "undefined") ? init : true; //Turn on prototypes
@@ -498,7 +491,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
     var object = function(){
 
       this.options = util.merge(defaults.pin, opts);
-      this.style = geoloqi.maps.styles[this.options.style];
+      this.style = exports.styles[this.options.style];
       this.infoOptions = util.merge(util.merge(defaults.info, this.style.info), opts);
 
       this.removeFromMap = function(){
@@ -556,7 +549,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
         var self = this;
 
         this.opened = this.infoOptions.opened; //Only for use infobox
-        
+
         try{
           if(typeof this.options.content == 'string'){
             if(this.infoOptions.useInfobox){
@@ -594,9 +587,9 @@ if(typeof google == "object"){ //Everything in here requires google maps
         google.maps.event.addListener(this.marker, "dragstart", function(event) {
           self.hideInfo();
         });
-        
+
         this.delayedInfobox = false;
-        
+
         if(self.options.autopan){
           google.maps.event.addListener(defaults.map, 'idle', function(event){
             if(!self.opened && self.options.openAfterDrag && self.delayedInfobox){
@@ -631,18 +624,18 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
     };
 
-    (inherit) ? object.prototype = new geoloqi.maps.pins.Basic(opts) : ''
+    (inherit) ? object.prototype = new exports.pins.Basic(opts) : ''
 
     return new object();
   };
 
   //A Pin With an Infobox and a Radius
-  geoloqi.maps.pins.WithInfoboxAndRadius = function(opts, init, prototype) {
+  exports.pins.WithInfoboxAndRadius = function(opts, init, prototype) {
 
     prototype = (typeof prototype != "undefined") ? prototype : true; //Turn on prototypes
     init = (typeof init != "undefined") ? init : true; //Turn on prototypes
 
-    var object = function(){
+    var object = function() {
 
       this.removeFromMap = function() {
         this.marker.setMap(null);
@@ -683,29 +676,27 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
     };
 
-    object.prototype = util.merge(new geoloqi.maps.pins.WithRadius(opts, false, true), new geoloqi.maps.pins.WithInfobox(opts, false, false));
+    object.prototype = util.merge(new exports.pins.WithRadius(opts, false, true), new exports.pins.WithInfobox(opts, false, false));
 
     return new object();
   };
 
   //Helper to generate styled info boxes
-  geoloqi.maps.InfoBox = function(content, styleKey){
+  exports.InfoBox = function(content, styleKey){
 
-    style = (typeof styleKey == 'undefined') ? geoloqi.maps.styles.default : geoloqi.maps.styles[styleKey];
-    
+    style = (typeof styleKey == 'undefined') ? exports.styles.default : exports.styles[styleKey];
+
     options = util.merge(defaults.info, style.info);
     options.content = content;
-    
+
     try{
       return new InfoBox(options);
     } catch(e) {
       geoloqiLog("ERROR : It looks like "+ e.arguments[0] + " was not defined. Are you sure its loaded?", e);
     }
-  
+
   };
 
-}; //End Google Maps required zone
-
-  return geoloqi;
+  return exports;
 
 }());
