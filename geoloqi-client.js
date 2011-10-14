@@ -6,7 +6,7 @@ window.addEventListener("message", function(event) {
   geoloqi.receive(event);
 });
 
-var geoloqi = (function () {
+var geoloqi = (function() {
   var version = '0.0.1';
 	var _anonymousCallbacks = {};
   var self = this;
@@ -104,6 +104,15 @@ var geoloqi = (function () {
   /* Receive the response from the iframe and execute the callback stored in an array (yes, this is how you're supposed to do it) */
   function receive(event) {
     var payload = JSON.parse(event.data);
+
+    if(typeof(payload.response) === 'string') {
+      payload.response = JSON.parse(payload.response);
+    }
+
+    if(typeof(payload.error) === 'string') {
+      payload.error = JSON.parse(payload.error);
+    }
+
     _anonymousCallbacks[payload.callbackId](payload.response, payload.error);
   }
   exports.receive = receive;
