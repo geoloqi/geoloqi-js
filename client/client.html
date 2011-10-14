@@ -3,8 +3,7 @@
     <script type="text/javascript" src="geoloqi.js"></script>
     <script type="text/javascript">
       window.onload = function () {
-        geoloqi.init();
-        geoloqi.config = {'client_id': 'client_id', 'redirect_uri':'http://example.com'};
+        geoloqi.init({'client_id': '665a737a5abe1fac5cced7149f03a62b', 'redirect_uri':'http://127.0.0.1:9393/client.html'});
       }
 
       function testCall() {
@@ -19,5 +18,6 @@
     <div id="geoloqi-root" style="display:none;"></div>
     <a href="#" onclick="geoloqi.authenticate(); return false">Auth</a>
     <a href="#" onclick="testCall(); return false">Test!</a>
+    <a href="#" onclick="geoloqi.expire(); return false">Expire</a>
   </body>
 </html>

@@ -17,10 +17,12 @@ var geoloqi = (function () {
   var iframe = null;
   var cookieName = '_geoloqi_auth';
 
-  var auth = null;
-  exports.auth = auth;
+  var config = {};
+  exports.config = config;
 
-  function init() {
+  var auth = null;
+
+  function init(config) {
     var iframeContainer = document.getElementById('geoloqi-root');
     iframe = document.createElement("iframe");
     iframe.setAttribute("src", receiverUrl);
@@ -28,7 +30,9 @@ var geoloqi = (function () {
     iframe.style.height = "0px";
     iframe.style.border = "0px";
     iframeContainer.appendChild(iframe);
-    exports.auth = JSON.parse(util.cookie.get());
+    self.auth = JSON.parse(util.cookie.get());
+
+    self.config = config;
 
     var anchorString = document.location.hash.substring(1);
 
@@ -36,25 +40,23 @@ var geoloqi = (function () {
       var newAuth = util.objectify(anchorString);
 
       if(newAuth.access_token && newAuth.expires_in) {
-        exports.auth = newAuth;
-        util.cookie.set(JSON.stringify(exports.auth));
+        self.auth = newAuth;
+        util.cookie.set(JSON.stringify(self.auth));
       }
     }
   }
   exports.init = init;
-
-  var config = {};
-  exports.config = config;
+  exports.auth = auth;
 
   function authenticate(popup) {
     if(auth === null) {
       var popup = false;
       if(popup == true) {
       } else {
-        var args = {'response_type': 'token', 'client_id': exports.config.client_id};
+        var args = {'response_type': 'token', 'client_id': self.config.client_id};
 
-        if(exports.config.redirect_uri) {
-          args['redirect_uri'] = exports.config.redirect_uri;
+        if(self.config.redirect_uri) {
+          args['redirect_uri'] = self.config.redirect_uri;
         }
 
         window.location = oauthUrl+'?'+util.serialize(args);
@@ -62,6 +64,12 @@ var geoloqi = (function () {
     }
   }
   exports.authenticate = authenticate;
+
+  function expire() {
+    self.auth = null;
+    util.cookie.erase();
+  }
+  exports.expire = expire;
 
   function get(path, callback) {
     execute('GET', path, {}, callback);
@@ -78,7 +86,7 @@ var geoloqi = (function () {
 		var arguments = {'method': method,
 										 'path': path,
 										 'args': args,
-										 'accessToken': exports.auth.access_token,
+										 'accessToken': self.auth.access_token,
 										 'callbackId': callbackId,
 										 'version': version};
 		_anonymousCallbacks[callbackId] = callback;
@@ -113,6 +121,7 @@ var geoloqi = (function () {
   }
 
   util.cookie = (function() {
+//    var self = this;
     var exports = {};
 
     function set(value, secondsUntilExpire) {
@@ -139,7 +148,7 @@ var geoloqi = (function () {
     exports.get = get;
 
     function erase() {
-      create("",-1);
+      set("",-1);
     }
     exports.erase = erase;
 
