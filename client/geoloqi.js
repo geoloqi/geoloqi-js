@@ -61,7 +61,7 @@ var geoloqi = (function () {
       }
     }
   }
-  exports.authenticateWithOauth2 = authenticateWithOauth2;
+  exports.authenticate = authenticate;
 
   function get(path, callback) {
     execute('GET', path, {}, callback);
