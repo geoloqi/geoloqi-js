@@ -12,10 +12,17 @@ var geoloqi = (function () {
   var self = this;
   var exports = {};
   var receiverUrl = 'https://api.geoloqi.com/receiver.html';
+  var oauthUrl = 'https://geoloqi.com/oauth/authorize';
   var geoloqiRootId = 'geoloqi-root';
   var iframe = null;
+  var cookieName = '_geoloqi_auth';
 
-  function init() {
+  var config = {};
+  exports.config = config;
+
+  var auth = null;
+
+  function init(config) {
     var iframeContainer = document.getElementById('geoloqi-root');
     iframe = document.createElement("iframe");
     iframe.setAttribute("src", receiverUrl);
@@ -23,15 +30,51 @@ var geoloqi = (function () {
     iframe.style.height = "0px";
     iframe.style.border = "0px";
     iframeContainer.appendChild(iframe);
-  }
-  exports.init = init;
+    self.auth = JSON.parse(util.cookie.get());
 
-  /* TODO */
-  function auth() {
-    if(geoloqi.cookieUtil.read('_geoloqi_auth')) {
+    self.config = config;
+
+    var anchorString = document.location.hash.substring(1);
+
+    if(anchorString !== "") {
+      var newAuth = util.objectify(anchorString);
+
+      if(newAuth.access_token && newAuth.expires_in) {
+        self.auth = newAuth;
+        util.cookie.set(JSON.stringify(self.auth));
+      }
     }
   }
+  exports.init = init;
   exports.auth = auth;
+
+  function authenticate(popup) {
+    if(auth === null) {
+      var popup = false;
+      if(popup == true) {
+      } else {
+        var args = {'response_type': 'token', 'client_id': self.config.client_id};
+
+        if(self.config.redirect_uri) {
+          args['redirect_uri'] = self.config.redirect_uri;
+        }
+
+        window.location = oauthUrl+'?'+util.serialize(args);
+      }
+    }
+  }
+  exports.authenticate = authenticate;
+
+  function logged_in() {
+    return (self.auth && self.auth.access_token) ? true : false;
+  }
+  exports.logged_in = logged_in;
+
+  function expire() {
+    self.auth = null;
+    util.cookie.erase();
+  }
+  exports.expire = expire;
 
   function get(path, callback) {
     execute('GET', path, {}, callback);
@@ -44,11 +87,14 @@ var geoloqi = (function () {
   exports.post = post;
 
   function execute(method, path, args, callback) {
+    if(!logged_in()) {
+      throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
+    }
     var callbackId = util.guid();
 		var arguments = {'method': method,
 										 'path': path,
 										 'args': args,
-										 'accessToken': geoloqi.accessToken,
+										 'accessToken': self.auth.access_token,
 										 'callbackId': callbackId,
 										 'version': version};
 		_anonymousCallbacks[callbackId] = callback;
@@ -65,18 +111,16 @@ var geoloqi = (function () {
   var util = {};
 
   util.serialize = function(obj) {
-    if (!isObject(obj)) return obj;
-    var pairs = [];
-    for (var key in obj) {
-      pairs.push(encodeURIComponent(key)
-        + '=' + encodeURIComponent(obj[key]));
-    }
-    return pairs.join('&');
+    var str = [];
+    for(var p in obj)
+       str.push(p + "=" + encodeURIComponent(obj[p]));
+    return str.join("&");
   }
 
-  util.getQuery = function() {
-    var result = {}, queryString = location.search.substring(1),
-        re = /([^&=]+)=([^&]*)/g, m;
+  util.objectify = function(queryString) {
+    var result = {};
+    var re = /([^&=]+)=([^&]*)/g;
+    var m;
 
     while (m = re.exec(queryString)) {
       result[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
@@ -84,22 +128,22 @@ var geoloqi = (function () {
     return result;
   }
 
-  util.cookies = function() {
+  util.cookie = (function() {
     var exports = {};
 
-    function create(name, value, days) {
-      if (days) {
+    function set(value, secondsUntilExpire) {
+      if (secondsUntilExpire) {
         var date = new Date();
-        date.setTime(date.getTime()+(days*24*60*60*1000));
+        date.setTime(date.getTime()+(secondsUntilExpire*1000));
         var expires = "; expires="+date.toGMTString();
       }
       else var expires = "";
-      document.cookie = name+"="+value+expires+"; path=/";
+      document.cookie = cookieName+"="+value+expires+"; path=/";
     }
-    exports.create = create;
+    exports.set = set;
 
-    function read(name) {
-      var nameEQ = name + "=";
+    function get() {
+      var nameEQ = cookieName + "=";
       var ca = document.cookie.split(';');
       for(var i=0;i < ca.length;i++) {
 	      var c = ca[i];
@@ -108,15 +152,15 @@ var geoloqi = (function () {
       }
       return null;
     }
-    exports.read = read;
+    exports.get = get;
 
-    function erase(name) {
-      createCookie(name,"",-1);
+    function erase() {
+      set("",-1);
     }
     exports.erase = erase;
 
     return exports;
-  }
+  }());
 
 	util.guid = function() {
 		return 'g' + (Math.random() * (1<<30)).toString(16).replace('.', '');
