@@ -65,6 +65,11 @@ var geoloqi = (function () {
   }
   exports.authenticate = authenticate;
 
+  function logged_in() {
+    return (self.auth && self.auth.access_token) ? true : false;
+  }
+  exports.logged_in = logged_in;
+
   function expire() {
     self.auth = null;
     util.cookie.erase();
@@ -82,6 +87,9 @@ var geoloqi = (function () {
   exports.post = post;
 
   function execute(method, path, args, callback) {
+    if(!logged_in()) {
+      throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
+    }
     var callbackId = util.guid();
 		var arguments = {'method': method,
 										 'path': path,
