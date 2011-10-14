@@ -24,17 +24,6 @@ var geoloqi = ( function () {
     return obj3;
   }
 
-  // addMethod - By John Resig (MIT Licensed)
-  util.addMethod = function (object, name, fn){
-    var old = object[ name ];
-    object[ name ] = function(){
-      if ( fn.length == arguments.length )
-        return fn.apply( this, arguments );
-      else if ( typeof old == 'function' )
-        return old.apply( this, arguments );
-    };
-  }
-
 if(typeof google == "object"){ //Everything in here requires google maps
 
   geoloqi.maps = {};
@@ -93,6 +82,8 @@ if(typeof google == "object"){ //Everything in here requires google maps
       useInfobox: false
     }
   };
+
+  geoloqi.maps.styles.geoloqi_js = geoloqi.maps.styles.default;
 
   var defaults = {
     map: null,
@@ -179,6 +170,11 @@ if(typeof google == "object"){ //Everything in here requires google maps
 
     object.prototype = {
 
+      centerHere: function(){
+        var mapToPan = this.getMap();
+        mapToPan.panTo(this.getPosition);
+      }
+
       showOnMap: function(map){
         map = (typeof map == "undefined") ? map : defaults.map;
         this.marker.setVisible(true);
@@ -212,8 +208,7 @@ if(typeof google == "object"){ //Everything in here requires google maps
       moveTo: function(latLng, autopan){
         autopan = (typeof autopan == "undefined") ? false : autopan;
         if(autopan){
-          mapToPan = this.getMap();
-          mapToPan.panTo(latLng);
+          this.centerHere();
         }
         this.setPosition(latLng);
       },
