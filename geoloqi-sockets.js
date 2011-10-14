@@ -15,8 +15,7 @@ geoloqi.Socket = function (type, auth, onLocation, onError) {
     this.start = function(){
     
       this.socket.on('enter authentication', function(data) {
-        console.log("enter auth");
-        this.socket.emit('token', this.type+"-"+this.auth);
+        self.socket.emit('token', self.type+"-"+self.auth);
       });
 
       this.socket.on('location', function(data) {
@@ -28,14 +27,16 @@ geoloqi.Socket = function (type, auth, onLocation, onError) {
         
         console.log('after');
         console.log(data);
-        
+
+        self.onLocation(data);
+/*
         if(isThereAnError){
-          this.onError(data);
+          self.onError(data);
         } else {
-          this.onLocation(data);
+          self.onLocation(data);
         }
-      });
-    
+*/
+      });  
     };
 
   };
@@ -45,3 +46,17 @@ geoloqi.Socket = function (type, auth, onLocation, onError) {
   return new object();
 };
 
+/*
+var friendTrip = new geoloqi.Socket('trip', 'trip_id');
+friendTrip.onReceiveLocation = function(location) {
+  console.log('RECEIVED: '+location);
+};
+friendTrip.onReceiveError = function(error) {
+  console.log(error);
+    console.log('re trying');
+  friendTrip.start();
+};
+friendTrip.start();
+
+friendTrip.stop();
+*/

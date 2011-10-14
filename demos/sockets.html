@@ -9,26 +9,35 @@
     <script type="text/javascript">
     
       window.onload = function () {
-        var testSocket = new geoloqi.Socket('trip', 'TQ4ew3Z', function(){console.log('Location');}, function(){console.log("Error");});
+        
+        
+        var drunkenBicycle = null;
+        
+        var testSocket = new geoloqi.Socket('trip', 'TQ4ew3Z', function(location){
+          
+          if(drunkenBicycle === null) {
+            drunkenBicycle = geoloqi.maps.pins.Basic({'lat': location.latitude, 'lng': location.longitude});
+          }
+          
+          drunkenBicycle.moveTo(new google.maps.LatLng(location.latitude, location.longitude), true);
+        }, function() {
+          console.log("Error");
+        });
         testSocket.start();
         geoloqi.init({'client_id': '665a737a5abe1fac5cced7149f03a62b'});
       }
 
       function getLastLocation() {
         geoloqi.get('location/last', function(result, error) {
-          console.log(result);
           duh = result;
           /* {"uuid":"2e15dbd7-db31-43cd-87a7-6e83239f5f6b","date":"2011-10-13T14:13:10-07:00","date_ts":1318540390,"location":{"position":{"latitude":45.524155902719,"longitude":-122.68322822649,"speed":0,"altitude":51,"heading":-1,"horizontal_accuracy":10,"vertical_accuracy":12},"type":"point"},"raw":{"battery":50,"rate_limit":10,"distance_filter":1,"tracking_limit":5}}
           */
-          geoloqi.maps.pins.Basic({'lat': result.location.position.latitude, 'lng': result.location.position.longitude})
+          
         });
       }
     </script>
     
       <script type="text/javascript">
-
-        console.log("Start");
-
         var map;
         var pinWithRadius;
         var pinWithInfobox;
@@ -42,7 +51,7 @@
         function initialize() {
 
           map = new google.maps.Map(document.getElementById('map'),{
-            zoom: 6,
+            zoom: 14,
             center: new google.maps.LatLng(0, 0),
             mapTypeId: google.maps.MapTypeId.ROADMAP
           });
@@ -187,7 +196,7 @@
             autopan:true
           });
           console.log(pin2);
-    */
+
           console.log("  ");
           console.log("Create default styled Pin With Radius");
           pinWithRadius2 = new geoloqi.maps.pins.WithRadius({
@@ -201,7 +210,7 @@
           console.log(pinWithRadius2);
 
           pinWithRadius2.showOnMap().lockPin().centerHere();
-
+    */
         }//End init function
 
         google.maps.event.addDomListener(window, 'load', initialize);
