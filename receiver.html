@@ -24,24 +24,27 @@
         function execute(o, callback) {
           var headers = {'Content-Type': 'application/json',
                          'X-Geoloqi-Version': 'geoloqi-client-js '+o.version+' receiver '+version,
-                         'Accept': 'application/json'};
+                         'Accept': 'application/json'},
+              xhr = util.getXHR(),
+              payload = {};
 
           if(typeof(o.accessToken) === 'string') {
             headers['Authorization'] = 'OAuth '+o.accessToken;
           }
 
-          var xhr = util.getXHR();
-
           xhr.onreadystatechange = function(){
+
             if (4 === xhr.readyState) {
-              var payload = {};
+
               if (xhr.status === 200) {
                 payload.response = xhr.responseText;
               } else {
                 payload.error = {status: xhr.status, message: xhr.responseText};
               }
+
               callback(payload);
             }
+
           };
 
           var fullUrl = apiUrl+o.path;
