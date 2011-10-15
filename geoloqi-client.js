@@ -91,14 +91,14 @@ var geoloqi = (function() {
       throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
     }
     var callbackId = util.guid();
-		var arguments = {'method': method,
+		var args = {'method': method,
 										 'path': path,
 										 'args': args,
 										 'accessToken': self.auth.access_token,
 										 'callbackId': callbackId,
 										 'version': version};
 		_anonymousCallbacks[callbackId] = callback;
-    iframe.contentWindow.postMessage(JSON.stringify(arguments), receiverUrl);
+    iframe.contentWindow.postMessage(JSON.stringify(args), receiverUrl);
   }
 
   /* Receive the response from the iframe and execute the callback stored in an array (yes, this is how you're supposed to do it) */
