@@ -98,8 +98,6 @@ var geoloqi = (function () {
   }
   exports.post = post;
 
-
-
   /* Receive the response from the iframe and execute the callback stored in an array (yes, this is how you're supposed to do it) */
   function receive(event) {
     var payload = JSON.parse(event.data);
