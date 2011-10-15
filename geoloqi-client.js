@@ -3,7 +3,8 @@ var geoloqi = (function () {
     anonymousCallbacks = {},
     self = this,
     exports = {},
-    receiverUrl = 'https://api.geoloqi.com/js/receiver.html',
+    apiUrl = 'https://api.geoloqi.com',
+    receiverUrl = apiUrl + '/js/receiver.html',
     oauthUrl = 'https://geoloqi.com/oauth/authorize',
     geoloqiRootId = 'geoloqi-root',
     iframe = null,
@@ -34,7 +35,7 @@ var geoloqi = (function () {
 
       if (newAuth.access_token && newAuth.expires_in) {
         self.auth = newAuth;
-        util.cookie.set(JSON.stringify(self.auth));
+        util.cookie.set(JSON.stringify(self.auth), newAuth.expires_in);
       }
     }
   }
@@ -98,8 +99,14 @@ var geoloqi = (function () {
   }
   exports.post = post;
 
-  /* Receive the response from the iframe and execute the callback stored in an array (yes, this is how you're supposed to do it) */
+  /* Receive the response from the iframe and execute the callback stored in an array (yes, this is how you're supposed to do it).
+     We also check to make sure it was actually sent from Geoloqi, because other API libraries may be using postMessage as well. */
+
   function receive(event) {
+    if(event.origin != apiUrl) {
+      return false;
+    }
+
     var payload = JSON.parse(event.data);
 
     if (typeof payload.response === 'string') {
