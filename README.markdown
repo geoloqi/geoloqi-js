@@ -1,4 +1,4 @@
-Geoloqi Javascript Library for Node.js (and eventually Web Browsers)
+Geoloqi Javascript Library for Web Browsers
 ===
 This is an interface library for the Geoloqi platform, written in JavaScript for the web browser.
 
