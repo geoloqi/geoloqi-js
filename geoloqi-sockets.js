@@ -1,3 +1,7 @@
+if(typeof geoloqi === 'undefined') {
+  var geoloqi = {};
+}
+
 geoloqi.Socket = function (type, auth, onLocation, onDisconnect) {
 
   var object = function () {
