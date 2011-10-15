@@ -2,39 +2,37 @@
   <head>
     <script type="text/javascript" src="https://maps.google.com/maps/api/js?libraries=geometry,places&amp;sensor=false"></script>
     <script type="text/javascript" src="http://google-maps-utility-library-v3.googlecode.com/svn/tags/infobox/1.1.8/src/infobox_packed.js"></script>
-    <script type="text/javascript" src="https://subscribe.geoloqi.com/socket.io/socket.io.js"></script>
+    
     <script type="text/javascript" src="../geoloqi-client.js"></script>
     <script type="text/javascript" src="../geoloqi-maps.js"></script>
+
+    <script type="text/javascript" src="https://subscribe.geoloqi.com/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="../geoloqi-sockets.js"></script>
+
     <script type="text/javascript">
-    
+
       window.onload = function () {
-        
-        
+        geoloqi.init({'client_id': '665a737a5abe1fac5cced7149f03a62b'});
+
         var drunkenBicycle = null;
-        
-        var testSocket = new geoloqi.Socket('trip', 'TQ4ew3Z', function(location){
-          
+
+        var testSocket = new geoloqi.Socket('trip', 'TQ4ew3Z');
+
+        testSocket.onLocation = function(location) {
           if(drunkenBicycle === null) {
             drunkenBicycle = geoloqi.maps.pins.Basic({'lat': location.latitude, 'lng': location.longitude});
           }
-          
           drunkenBicycle.moveTo(new google.maps.LatLng(location.latitude, location.longitude), true);
-        }, function() {
-          console.log("Error");
-        });
+        }
+
+        testSocket.onDisconnect = function() {
+          console.log('butts!!!!!!!!!!!!!!!!!!!');
+//          testSocket.start();
+        }
         testSocket.start();
-        geoloqi.init({'client_id': '665a737a5abe1fac5cced7149f03a62b'});
+
       }
 
-      function getLastLocation() {
-        geoloqi.get('location/last', function(result, error) {
-          duh = result;
-          /* {"uuid":"2e15dbd7-db31-43cd-87a7-6e83239f5f6b","date":"2011-10-13T14:13:10-07:00","date_ts":1318540390,"location":{"position":{"latitude":45.524155902719,"longitude":-122.68322822649,"speed":0,"altitude":51,"heading":-1,"horizontal_accuracy":10,"vertical_accuracy":12},"type":"point"},"raw":{"battery":50,"rate_limit":10,"distance_filter":1,"tracking_limit":5}}
-          */
-          
-        });
-      }
     </script>
     
       <script type="text/javascript">
