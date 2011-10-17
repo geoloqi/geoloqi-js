@@ -8,6 +8,10 @@
         geoloqi.onAuthorize = function() {
           console.log('Authorized!');
         };
+        
+        geoloqi.onOAuthError = function(error) {
+          console.log('Login Error: '+error);
+        }
       }
 
       function getProfile() {
