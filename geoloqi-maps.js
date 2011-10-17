@@ -145,7 +145,7 @@ geoloqi.maps = (function() {
       this.options.shadow = this.style.marker.shadow;
       
       if(this.options.position instanceof google.maps.LatLng === false){
-        this.options.position = new google.maps.LatLng(this.options.position.lat, this.options.position.lng);
+        this.options.position = new google.maps.LatLng(this.options.position.latitude, this.options.position.longitude);
       }
 
       if(this.options.editable){
@@ -203,7 +203,7 @@ geoloqi.maps = (function() {
         autopan = (typeof autopan == "undefined") ? false : autopan;
         
         if(position instanceof google.maps.LatLng === false){
-          position = new google.maps.LatLng(position.lat, position.lng);
+          position = new google.maps.LatLng(position.latitude, position.longitude);
         }
         
         this.setPosition(latLng);
@@ -218,7 +218,7 @@ geoloqi.maps = (function() {
       setPosition: function(position){
 
         if(position instanceof google.maps.LatLng === false){
-          position = new google.maps.LatLng(position.lat, position.lng);
+          position = new google.maps.LatLng(position.latitude, position.longitude);
         }
 
         this.marker.setPosition(position);
