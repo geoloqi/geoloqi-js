@@ -9,6 +9,10 @@ window.geoloqiLog = function(){
   }
 };
 
+if(typeof geoloqi === 'undefined') {
+  var geoloqi = {};
+}
+
 geoloqi.maps = (function() {
 
   //Public Facing Object

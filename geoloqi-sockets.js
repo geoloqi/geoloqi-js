@@ -1,57 +1,47 @@
-{
-  start
-  location
-  disconnect
+/* Events
+start
+onlocation
+disconnect 
+*/
+
+if(typeof geoloqi === 'undefined') {
+  var geoloqi = {};
 }
 
-var test = new geoloqi.Socket(stuff);
-test.events.start = fucn
-
-
 geoloqi.Socket = function (type, auth, events) {
-  
-  var object = function () {
-    var self = this;
 
+  var object = function () {
+
+    events = (typeof events == "undefined") ? {} : events;
+
+    var self = this;
     var api = "https://subscribe.geoloqi.com:443";
-    
+
     this.auth = auth;
     this.type = type;
-    this.onLocation = onLocation;
-    this.onError = onError;
-    
+    this.events = {
+      start: events.start || null,
+      location: events.location || null,
+      disconnect: events.disconnect || null
+    };
+
     this.socket = io.connect(api);
 
     this.start = function(){
-    
       this.socket.on('enter authentication', function(data) {
-        console.log("enter auth");
-        this.socket.emit('token', this.type+"-"+this.auth);
+        self.socket.emit('token', self.type+"-"+self.auth);
+        self.events.start;
       });
 
       this.socket.on('location', function(data) {
-        console.log("location");
-        console.log('before');
-        console.log(data);
-        
-        var data = eval("("+data+")");
-        
-        console.log('after');
-        console.log(data);
-        
-        if(isThereAnError){
-          this.onError(data);
-        } else {
-          this.onLocation(data);
-        }
+        var data = JSON.parse(data);
+        self.events.location(data);
       });
-    
+
+      this.socket.on('disconnect', self.events.disconnect);
     };
 
   };
 
-  object.prototype = {};
-
   return new object();
 };
-
