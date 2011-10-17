@@ -1,29 +1,25 @@
-window.onload = function() {
-  geoloqi.init();
-}
+var geoloqi = (function () {
+  var version = '0.0.1',
+    anonymousCallbacks = {},
+    self = this,
+    exports = {},
+    apiUrl = 'https://api.geoloqi.com',
+    receiverUrl = apiUrl + '/js/receiver.html',
+    oauthUrl = 'https://geoloqi.com/oauth/authorize',
+    geoloqiRootId = 'geoloqi-root',
+    iframe = null,
+    cookieName = '_geoloqi_auth',
+    config = {},
+    auth = null,
+    util = {};
 
-window.addEventListener("message", function(event) {
-  geoloqi.receive(event);
-});
-
-var geoloqi = (function() {
-  var version = '0.0.1';
-	var _anonymousCallbacks = {};
-  var self = this;
-  var exports = {};
-  var receiverUrl = 'https://api.geoloqi.com/receiver.html';
-  var oauthUrl = 'https://geoloqi.com/oauth/authorize';
-  var geoloqiRootId = 'geoloqi-root';
-  var iframe = null;
-  var cookieName = '_geoloqi_auth';
-
-  var config = {};
   exports.config = config;
 
-  var auth = null;
-
   function init(config) {
-    var iframeContainer = document.getElementById('geoloqi-root');
+    var iframeContainer = document.getElementById(geoloqiRootId),
+      anchorString = document.location.hash.substring(1),
+      newAuth = {};
+
     iframe = document.createElement("iframe");
     iframe.setAttribute("src", receiverUrl);
     iframe.style.width = "0px";
@@ -34,14 +30,12 @@ var geoloqi = (function() {
 
     self.config = config;
 
-    var anchorString = document.location.hash.substring(1);
+    if (anchorString !== "") {
+      newAuth = util.objectify(anchorString);
 
-    if(anchorString !== "") {
-      var newAuth = util.objectify(anchorString);
-
-      if(newAuth.access_token && newAuth.expires_in) {
+      if (newAuth.access_token && newAuth.expires_in) {
         self.auth = newAuth;
-        util.cookie.set(JSON.stringify(self.auth));
+        util.cookie.set(JSON.stringify(self.auth), newAuth.expires_in);
       }
     }
   }
@@ -49,17 +43,18 @@ var geoloqi = (function() {
   exports.auth = auth;
 
   function authenticate(popup) {
-    if(auth === null) {
-      var popup = false;
-      if(popup == true) {
-      } else {
-        var args = {'response_type': 'token', 'client_id': self.config.client_id};
+    var args = {};
+    if (auth === null) {
 
-        if(self.config.redirect_uri) {
-          args['redirect_uri'] = self.config.redirect_uri;
+      if (popup === true) {
+      } else {
+        args = {'response_type': 'token', 'client_id': self.config.client_id};
+
+        if (self.config.redirect_uri) {
+          args.redirect_uri = self.config.redirect_uri;
         }
 
-        window.location = oauthUrl+'?'+util.serialize(args);
+        window.location = oauthUrl + '?' + util.serialize(args);
       }
     }
   }
@@ -76,6 +71,24 @@ var geoloqi = (function() {
   }
   exports.expire = expire;
 
+  function execute(method, path, args, callback) {
+    var callbackId = util.guid(),
+      message = {};
+
+    if (!logged_in()) {
+      throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
+    }
+
+    message = {'method': method,
+               'path': path,
+               'args': args,
+               'accessToken': self.auth.access_token,
+               'callbackId': callbackId,
+               'version': version};
+		anonymousCallbacks[callbackId] = callback;
+    iframe.contentWindow.postMessage(JSON.stringify(message), receiverUrl);
+  }
+
   function get(path, callback) {
     execute('GET', path, {}, callback);
   }
@@ -86,47 +99,36 @@ var geoloqi = (function() {
   }
   exports.post = post;
 
-  function execute(method, path, args, callback) {
-    if(!logged_in()) {
-      throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
-    }
-    var callbackId = util.guid();
-		var arguments = {'method': method,
-										 'path': path,
-										 'args': args,
-										 'accessToken': self.auth.access_token,
-										 'callbackId': callbackId,
-										 'version': version};
-		_anonymousCallbacks[callbackId] = callback;
-    iframe.contentWindow.postMessage(JSON.stringify(arguments), receiverUrl);
-  }
+  /* Receive the response from the iframe and execute the callback stored in an array (yes, this is how you're supposed to do it).
+     We also check to make sure it was actually sent from Geoloqi, because other API libraries may be using postMessage as well. */
 
-  /* Receive the response from the iframe and execute the callback stored in an array (yes, this is how you're supposed to do it) */
   function receive(event) {
+    if(event.origin != apiUrl) {
+      return false;
+    }
+
     var payload = JSON.parse(event.data);
 
-    if(typeof(payload.response) === 'string') {
+    if (typeof payload.response === 'string') {
       payload.response = JSON.parse(payload.response);
     }
 
-    if(typeof(payload.error) === 'string') {
+    if (typeof payload.error === 'string') {
       payload.error = JSON.parse(payload.error);
     }
 
-    _anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+    anonymousCallbacks[payload.callbackId](payload.response, payload.error);
   }
   exports.receive = receive;
 
-  var util = {};
-
-  util.serialize = function(obj) {
+  util.serialize = function (obj) {
     var str = [];
-    for(var p in obj)
+    for (var p in obj)
        str.push(p + "=" + encodeURIComponent(obj[p]));
     return str.join("&");
   }
 
-  util.objectify = function(queryString) {
+  util.objectify = function (queryString) {
     var result = {};
     var re = /([^&=]+)=([^&]*)/g;
     var m;
@@ -137,7 +139,7 @@ var geoloqi = (function() {
     return result;
   }
 
-  util.cookie = (function() {
+  util.cookie = (function () {
     var exports = {};
 
     function set(value, secondsUntilExpire) {
@@ -147,14 +149,14 @@ var geoloqi = (function() {
         var expires = "; expires="+date.toGMTString();
       }
       else var expires = "";
-      document.cookie = cookieName+"="+value+expires+"; path=/";
+      document.cookie = cookieName + "=" + value + expires + "; path=/";
     }
     exports.set = set;
 
     function get() {
       var nameEQ = cookieName + "=";
       var ca = document.cookie.split(';');
-      for(var i=0;i < ca.length;i++) {
+      for (var i=0;i < ca.length;i++) {
 	      var c = ca[i];
 	      while (c.charAt(0)==' ') c = c.substring(1,c.length);
 	      if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
@@ -171,9 +173,17 @@ var geoloqi = (function() {
     return exports;
   }());
 
-	util.guid = function() {
-		return 'g' + (Math.random() * (1<<30)).toString(16).replace('.', '');
-	}
+  util.guid = function () {
+    return 'g' + (Math.random() * (1<<30)).toString(16).replace('.', '');
+  }
 
   return exports;
 }());
+
+window.onload = function () {
+  geoloqi.init();
+}
+
+window.addEventListener("message", function(event) {
+  geoloqi.receive(event);
+});
