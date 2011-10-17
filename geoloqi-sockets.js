@@ -1,4 +1,14 @@
-geoloqi.Socket = function (type, auth, onLocation, onError) {
+{
+  start
+  location
+  disconnect
+}
+
+var test = new geoloqi.Socket(stuff);
+test.events.start = fucn
+
+
+geoloqi.Socket = function (type, auth, events) {
   
   var object = function () {
     var self = this;
