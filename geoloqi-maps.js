@@ -5,8 +5,8 @@ if(typeof geoloqi === 'undefined') {
 geoloqi.maps = (function() {
 
   //Public Facing Object
-  var exports = {},
-      util = {};
+  var exports = {};
+  var util = {};
 
   util.merge = function(obj1, obj2){
     var obj3 = {};
@@ -38,9 +38,7 @@ geoloqi.maps = (function() {
 
     exports.styles[name] = util.merge(exports.styles['default'], style);
 
-    if(makeDefault){
-      exports.styles.setDefault(name);
-    }
+    (makeDefault) ? exports.styles.setDefault(name) : null ;
   };
 
   //Set a new default style
@@ -120,12 +118,13 @@ geoloqi.maps = (function() {
   };
 
   //Returns the ideal radius for a map
-  exports.helpers.getIdealRadiusForMap = function(){
+  exports.helpers.getIdealRadiusForMap = function(fillPercent){
+    fraction = (if typeof fillPercent != 'undefined') : 100/fillPercent : 4;
     var bounds = map.getBounds();
     var ne = bounds.getNorthEast();
     var sw = bounds.getSouthWest();
     var se = new google.maps.LatLng(sw.lat(), ne.lng());
-    return (google.maps.geometry.spherical.computeDistanceBetween(ne, se) / 4);
+    return (google.maps.geometry.spherical.computeDistanceBetween(ne, se) / fraction);
   }
 
   //Namespace for pins
@@ -160,7 +159,7 @@ geoloqi.maps = (function() {
     object.prototype = {
 
       centerHere: function(){
-        var mapToPan = this.getMap();
+        mapToPan = this.getMap();
         mapToPan.panTo(this.getPosition());
         return this;
       },
@@ -321,8 +320,6 @@ geoloqi.maps = (function() {
         this.circles = [];
 
         for(var i = 0; i<this.style.circles.count; i++) {
-          
-          
           this.circles.push({
             circle: new google.maps.Circle({
               center: this.getPosition(),
