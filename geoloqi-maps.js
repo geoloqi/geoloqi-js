@@ -1,14 +1,3 @@
-//For some reason this has to be attached to the window object.
-window.geoloqiLog = function(){
-  geoloqiLog.history = geoloqiLog.history || [];   // store logs to an array for reference
-  geoloqiLog.history.push(arguments);
-  if(this.console) {
-    arguments.callee = arguments.callee.caller;
-    var newarr = [].slice.call(arguments);
-    (typeof console.log === 'object' ? geoloqiLog.apply.call(console.log, console, newarr) : console.log.apply(console, newarr));
-  }
-};
-
 if(typeof geoloqi === 'undefined') {
   var geoloqi = {};
 }
@@ -16,8 +5,8 @@ if(typeof geoloqi === 'undefined') {
 geoloqi.maps = (function() {
 
   //Public Facing Object
-  var exports = {},
-      util = {};
+  var exports = {};
+  var util = {};
 
   util.merge = function(obj1, obj2){
     var obj3 = {};
@@ -49,9 +38,7 @@ geoloqi.maps = (function() {
 
     exports.styles[name] = util.merge(exports.styles['default'], style);
 
-    if(makeDefault){
-      exports.styles.setDefault(name);
-    }
+    (makeDefault) ? exports.styles.setDefault(name) : null ;
   };
 
   //Set a new default style
@@ -131,12 +118,13 @@ geoloqi.maps = (function() {
   };
 
   //Returns the ideal radius for a map
-  exports.helpers.getIdealRadiusForMap = function(){
+  exports.helpers.getIdealRadiusForMap = function(fillPercent){
+    fraction = (if typeof fillPercent != 'undefined') : 100/fillPercent : 4;
     var bounds = map.getBounds();
     var ne = bounds.getNorthEast();
     var sw = bounds.getSouthWest();
     var se = new google.maps.LatLng(sw.lat(), ne.lng());
-    return (google.maps.geometry.spherical.computeDistanceBetween(ne, se) / 4);
+    return (google.maps.geometry.spherical.computeDistanceBetween(ne, se) / fraction);
   }
 
   //Namespace for pins
@@ -154,7 +142,10 @@ geoloqi.maps = (function() {
 
       this.options.icon = this.style.marker.icon;
       this.options.shadow = this.style.marker.shadow;
-      this.options.position = new google.maps.LatLng(this.options.lat, this.options.lng);
+      
+      if(this.options.position instanceof google.maps.LatLng === false){
+        this.options.position = new google.maps.LatLng(this.options.position.latitude, this.options.position.longitude);
+      }
 
       if(this.options.editable){
         opts.draggable = true;
@@ -168,7 +159,7 @@ geoloqi.maps = (function() {
     object.prototype = {
 
       centerHere: function(){
-        var mapToPan = this.getMap();
+        mapToPan = this.getMap();
         mapToPan.panTo(this.getPosition());
         return this;
       },
@@ -177,18 +168,17 @@ geoloqi.maps = (function() {
         map = (typeof map != "undefined") ? map : defaults.map;
         this.marker.setVisible(true);
         this.marker.setMap(map);
-
         return this;
       },
 
       removeFromMap: function() {
         this.marker.setMap(null);
-
         return this;
       },
 
       setDraggable: function(state){
         this.marker.setDraggable(state);
+        return this;
       },
 
       getDraggable: function() {
@@ -201,22 +191,37 @@ geoloqi.maps = (function() {
         } else {
           this.setDraggable(true);
         }
+        return this;
       },
 
       getMap: function(){
         return this.marker.getMap();
       },
 
-      moveTo: function(latLng, autopan){
+      moveTo: function(position, autopan){
         autopan = (typeof autopan == "undefined") ? false : autopan;
+        
+        if(position instanceof google.maps.LatLng === false){
+          position = new google.maps.LatLng(position.latitude, position.longitude);
+        }
+        
+        this.setPosition(latLng);
+
         if(autopan){
           this.centerHere();
         }
-        this.setPosition(latLng);
+
+        return this;
       },
 
-      setPosition: function(latLng){
-        this.marker.setPosition(latLng);
+      setPosition: function(position){
+
+        if(position instanceof google.maps.LatLng === false){
+          position = new google.maps.LatLng(position.latitude, position.longitude);
+        }
+
+        this.marker.setPosition(position);
+        return this;
       },
 
       getPosition: function(){
@@ -255,9 +260,9 @@ geoloqi.maps = (function() {
       // ==========
       this.options = util.merge(defaults.pin, opts);
       this.style = exports.styles[this.options.style];
-
+      
       this.handleOptions = util.merge(defaults.handle, this.style.handle);
-      this.handleOptions.position = new google.maps.LatLng(this.options.lat, this.options.lng);
+      this.handleOptions.position = new google.maps.LatLng(0,0);
       this.handleOptions.map = this.options.map;
 
       this.lineOptions = util.merge(defaults.line, this.style.line);
@@ -271,6 +276,7 @@ geoloqi.maps = (function() {
             this.circles[i].circle.setMap(null);
           }
         }
+        return this;
       }
 
       this.showCircles = function(){
@@ -279,19 +285,19 @@ geoloqi.maps = (function() {
             this.circles[i].circle.setMap(this.getMap());
           }
         }
+        return this;
       }
 
       this.showOnMap = function(map){
         newMap = (typeof map != "undefined") ? map : defaults.map;
-        this.showCircles();
         this.line.setMap(newMap);
         this.handle.setMap(newMap);
         this.marker.setMap(newMap);
+        this.showCircles();
         return this;
       }
 
       this.removeFromMap = function() {
-        console.log('hide');
         this.hideCircles();
         this.line.setMap(null);
         this.handle.setMap(null);
@@ -305,12 +311,9 @@ geoloqi.maps = (function() {
       }
 
       // Setup Circles
-      this.setupCircles = function(radius, visible){
+      this.setupCircles = function(radius, showOnMap){
         radius = typeof(radius) != 'undefined' ? radius : this.radius; //default to this.radius
-
-        if (typeof(visible) == 'undefined'){
-          visible = typeof(this.getMap()) == "object" ? true : false;
-        }
+        showOnMap = (typeof showOnMap != "undefined") ?  showOnMap : null;
 
         this.hideCircles();
 
@@ -326,35 +329,40 @@ geoloqi.maps = (function() {
               strokeColor: this.style.circles.strokeColor,
               strokeWeight: this.style.circles.strokeWeight,
               strokeOpacity: this.style.circles.strokeOpacity,
-              map: (visible) ? this.getMap() : null,
+              map: showOnMap,
               zIndex: -1
             }),
             index: i
           });
           this.circles[i].circle.bindTo('center', this.marker, 'position');
         }
+        return this;
       };
 
       this.updateHandle = function(){
         this.handle.setPosition(google.maps.geometry.spherical.computeOffset(this.marker.getPosition(), this.getRadius(), 135));
+        return this;
       }
 
       this.updateLine = function(){
         this.line.setPath([this.getPosition(), this.handle.getPosition()]);
+        return this;
       }
 
       this.hideHandle = function() {
         this.line.setMap(null);
         this.handle.setMap(null);
+        return this;
       }
 
       this.showHandle = function() {
         this.line.setMap(this.getMap());
         this.handle.setMap(this.getMap());
+        return this;
       }
 
       this.lockPin = function(){
-        this.marker.setDraggable(false);
+        this.setDraggable(false)
         this.hideHandle();
         this.isLocked = true;
         return this;
@@ -366,16 +374,16 @@ geoloqi.maps = (function() {
           this.showHandle();
         }
         this.isLocked = false;
+        return this;
       }
 
       this.toggleLock = function() {
         if(this.isLocked){
           this.unlockPin();
-          this.isLocked = false;
         } else {
           this.lockPin();
-          this.isLocked = true;
         }
+        return this;
       }
 
       this.initRadius = function(){
@@ -388,14 +396,12 @@ geoloqi.maps = (function() {
 
         if(this.options.editable){
           this.unlockPin();
-          this.isLocked = false;
         } else {
           this.lockPin();
-          this.isLocked = true;
         };
 
         //Setup Circles
-        this.setupCircles(this.options.radius, !!this.options.map);
+        this.setupCircles(this.options.radius, this.options.map);
 
         //Setup The Handle Position and Line
         this.updateHandle();
@@ -417,8 +423,6 @@ geoloqi.maps = (function() {
         google.maps.event.addListener(this.marker, "drag", function(event) {
           self.updateHandle();
         });
-
-        // Center map on the pin, show info, handle and Line
 
         this.delayedHandle = false;
 
@@ -501,23 +505,27 @@ geoloqi.maps = (function() {
       this.removeFromMap = function(){
         this.info.close();
         this.marker.setMap(null);
+        return this;
       };
 
       this.showOnMap = function(map){
         map = (typeof map != "undefined") ? map : defaults.map;
         this.info.open(map, this.marker);
         this.marker.setMap(map);
+        return this;
       };
 
       this.hideInfo = function() {
         this.opened = false;
         this.info.close();
+        return this;
       };
 
       this.showInfo = function() {
         this.opened = true;
         this.delayedInfobox = true;
         this.info.open(defaults.map, this.marker);
+        return this;
       };
 
       this.toggleInfo = function() {
@@ -526,10 +534,12 @@ geoloqi.maps = (function() {
         } else {
           this.showInfo();
         }
+        return this;
       };
 
       this.setContent = function(html) {
         this.info.setContent(html);
+        return this;
       };
 
       this.setInfo = function(obj, open){
@@ -547,6 +557,7 @@ geoloqi.maps = (function() {
         google.maps.event.addListener(this.info, 'closeclick', function(){
           self.opened = false;
         });
+        return this;
       };
 
       this.initInfobox = function(){
@@ -554,26 +565,20 @@ geoloqi.maps = (function() {
 
         this.opened = this.infoOptions.opened; //Only for use infobox
 
-        try{
-          if(typeof this.options.content == 'string'){
-            if(this.infoOptions.useInfobox){
-              this.info = new InfoBox(this.infoOptions);
-            } else {
-              this.info = new google.maps.InfoWindow(this.infoOptions);
-            }
-          } else if (this.options.content instanceof InfoBox || this.options.content instanceof google.maps.InfoWindow) {
-            this.info = this.options.content;
-            this.options.toggleInfoOnClick = true;
-            this.opened = false;
+        if(typeof this.options.content == 'string'){
+          if(this.infoOptions.useInfobox){
+            this.info = new InfoBox(this.infoOptions);
           } else {
-            this.info = null;
+            this.info = new google.maps.InfoWindow(this.infoOptions);
           }
-        } catch(e){
-          geoloqiLog("ERROR : It looks like "+ e.arguments[0] + " was not defined. Are you sure its loaded?", e);
-          geoloqiLog("No Infobox or InfoWindow set");
+        } else if (this.options.content instanceof InfoBox || this.options.content instanceof google.maps.InfoWindow) {
+          this.info = this.options.content;
+          this.options.toggleInfoOnClick = true;
+          this.opened = false;
+        } else {
           this.info = null;
-        };
-
+        }
+      
         if(this.options.toggleInfoOnClick){
           this.isClickable = true;
           this.marker.setClickable(true);
@@ -646,6 +651,7 @@ geoloqi.maps = (function() {
         this.handle.setMap(null);
         this.line.setMap(null);
         this.hideCircles();
+        return this;
       };
 
       this.showOnMap = function(map) {
@@ -653,7 +659,8 @@ geoloqi.maps = (function() {
         this.marker.setMap(map);
         this.handle.setMap(map);
         this.line.setMap(map);
-        this.hideCircles();
+        this.showCircles();
+        return this;
       };
 
       this.initInfoboxAndRadius = function() {
@@ -693,11 +700,7 @@ geoloqi.maps = (function() {
     options = util.merge(defaults.info, style.info);
     options.content = content;
 
-    try{
-      return new InfoBox(options);
-    } catch(e) {
-      geoloqiLog("ERROR : It looks like "+ e.arguments[0] + " was not defined. Are you sure its loaded?", e);
-    }
+    return new InfoBox(options);
 
   };
 
