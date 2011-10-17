@@ -13,7 +13,7 @@ This library is split up into three javascript files:
 Usage
 ---
 
-Consult the demos folder for code examples. Here is a client example to get you started:
+Consult the demos folder for code examples. Don't forget to create an application at the [Geoloqi Developers Site](https://developers.geoloqi.com). Here is a client example to get you started:
 
     <html>
       <head>

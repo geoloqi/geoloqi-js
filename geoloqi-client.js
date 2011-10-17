@@ -5,19 +5,23 @@ var geoloqi = (function () {
     exports = {},
     apiUrl = 'https://api.geoloqi.com',
     receiverUrl = apiUrl + '/js/receiver.html',
-    oauthUrl = 'https://geoloqi.com/oauth/authorize',
+    oauthUrl = 'https://geoloqi.com',
+    oauthPath = '/oauth/authorize',
     geoloqiRootId = 'geoloqi-root',
     iframe = null,
     cookieName = '_geoloqi_auth',
     config = {},
     auth = null,
-    util = {};
+    util = {},
+    onAuthorize = null;
 
   exports.config = config;
 
+  exports.onAuthorize = onAuthorize;
+
   function init(config) {
     var iframeContainer = document.getElementById(geoloqiRootId),
-      anchorString = document.location.hash.substring(1),
+      fragment = document.location.hash.substring(1),
       newAuth = {};
 
     iframe = document.createElement("iframe");
@@ -30,35 +34,66 @@ var geoloqi = (function () {
 
     self.config = config;
 
-    if (anchorString !== "") {
-      newAuth = util.objectify(anchorString);
-
-      if (newAuth.access_token && newAuth.expires_in) {
-        self.auth = newAuth;
-        util.cookie.set(JSON.stringify(self.auth), newAuth.expires_in);
-      }
+    if (fragment !== "") {
+      processFragmentQueryString(fragment);
     }
   }
   exports.init = init;
   exports.auth = auth;
 
-  function authenticate(popup) {
-    var args = {};
-    if (auth === null) {
+  function processFragmentQueryString(fragment) {
+    newAuth = util.objectify(fragment);
 
-      if (popup === true) {
-      } else {
-        args = {'response_type': 'token', 'client_id': self.config.client_id};
+    if (newAuth.access_token && newAuth.expires_in) {
+      self.auth = newAuth;
+      util.cookie.set(JSON.stringify(newAuth), newAuth.expires_in);
 
-        if (self.config.redirect_uri) {
-          args.redirect_uri = self.config.redirect_uri;
-        }
-
-        window.location = oauthUrl + '?' + util.serialize(args);
+      if(exports.onAuthorize !== null) {
+        exports.onAuthorize();
       }
     }
   }
+
+  function returnFromPopup(auth) {
+    processFragmentQueryString(auth);
+  }
+
+  function authenticate() {
+    authenticatePrompt(false);
+  }
   exports.authenticate = authenticate;
+
+  function authenticateWithPopup() {
+    authenticatePrompt(true);
+  }
+  exports.authenticateWithPopup = authenticateWithPopup;
+
+  function authenticatePrompt(popup) {
+    var args = {},
+        url = '';
+    if (auth === null) {
+
+      args = {'response_type': 'token', 'client_id': self.config.client_id};
+
+      if (self.config.redirect_uri) {
+        args.redirect_uri = self.config.redirect_uri;
+      }
+
+      if (popup === true) {
+        args.mode = 'popup';
+      }
+      url = oauthUrl + oauthPath + '?' + util.serialize(args);
+
+      if (popup === true) {
+        var popupWindow = window.open(url,'Authenticate','height=500,width=700');
+        	if (window.focus) {
+        	  popupWindow.focus();
+        	}
+      } else {
+        window.location = url;
+      }
+    }
+  }
 
   function logged_in() {
     return (self.auth && self.auth.access_token) ? true : false;
@@ -103,21 +138,28 @@ var geoloqi = (function () {
      We also check to make sure it was actually sent from Geoloqi, because other API libraries may be using postMessage as well. */
 
   function receive(event) {
-    if(event.origin != apiUrl) {
+    if(event.origin != apiUrl && event.origin != oauthUrl) {
       return false;
     }
 
     var payload = JSON.parse(event.data);
 
-    if (typeof payload.response === 'string') {
-      payload.response = JSON.parse(payload.response);
-    }
+    if(typeof payload.auth === 'string') {
 
-    if (typeof payload.error === 'string') {
-      payload.error = JSON.parse(payload.error);
-    }
+      returnFromPopup(payload.auth);
 
-    anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+    } else {
+
+      if (typeof payload.response === 'string') {
+        payload.response = JSON.parse(payload.response);
+      }
+
+      if (typeof payload.error === 'string') {
+        payload.error = JSON.parse(payload.error);
+      }
+
+      anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+    }
   }
   exports.receive = receive;
 
