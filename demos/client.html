@@ -4,6 +4,10 @@
     <script type="text/javascript">
       window.onload = function () {
         geoloqi.init({'client_id': '665a737a5abe1fac5cced7149f03a62b'});
+        
+        geoloqi.onAuthorize = function() {
+          console.log('Authorized!');
+        };
       }
 
       function getProfile() {
@@ -22,7 +26,9 @@
   </head>
   <body>
     <div id="geoloqi-root" style="display:none;"></div>
-    <a href="#" onclick="geoloqi.authenticate(); return false">Authenticate Session</a>
+    <a href="#" onclick="geoloqi.authenticate(); return false">Authenticate Session (direct)</a>
+    <br>
+    <a href="#" onclick="geoloqi.authenticateWithPopup(); return false">Authenticate Session (with popup dialog)</a>
     <br>
     <a href="#" onclick="getProfile(); return false">Get Profile</a>
     <br>
