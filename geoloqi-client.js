@@ -16,6 +16,47 @@ var geoloqi = (function () {
     onAuthorize = null,
     onOAuthError = null;
 
+  var socket = new easyXDM.Socket({
+    remote: receiverUrl,
+    onMessage: function(message, origin){
+      //alert("Received '" + message + "' from '" + origin + "'");
+      //socket.postMessage("Indeed it does!");
+      console.log('MESSAGE AND ORIGIN');
+      console.log(message);
+      console.log(origin);
+      if(origin != apiUrl && origin != oauthUrl) {
+        return false;
+      }
+
+      var payload = JSON.parse(message);
+
+      if(typeof payload.oauth === 'object') {
+
+        if(typeof payload.oauth.auth === 'string') {
+          returnFromPopup(payload.oauth.auth);
+        }
+
+        if(typeof payload.oauth.error === 'string' && exports.onOAuthError !== null) {
+          exports.onOAuthError(payload.oauth.error);
+        }
+
+      } else {
+
+        if (typeof payload.response === 'string') {
+          payload.response = JSON.parse(payload.response);
+        }
+
+        if (typeof payload.error === 'string') {
+          payload.error = JSON.parse(payload.error);
+        }
+
+        anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+      }
+    }
+  });
+
+
+
   exports.config = config;
   exports.onAuthorize = onAuthorize;
   exports.onOAuthError = onOAuthError;
