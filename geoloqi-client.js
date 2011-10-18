@@ -13,11 +13,12 @@ var geoloqi = (function () {
     config = {},
     auth = null,
     util = {},
-    onAuthorize = null;
+    onAuthorize = null,
+    onOAuthError = null;
 
   exports.config = config;
-
   exports.onAuthorize = onAuthorize;
+  exports.onOAuthError = onOAuthError;
 
   function init(config) {
     var iframeContainer = document.getElementById(geoloqiRootId),
@@ -144,9 +145,15 @@ var geoloqi = (function () {
 
     var payload = JSON.parse(event.data);
 
-    if(typeof payload.auth === 'string') {
+    if(typeof payload.oauth === 'object') {
 
-      returnFromPopup(payload.auth);
+      if(typeof payload.oauth.auth === 'string') {
+        returnFromPopup(payload.oauth.auth);
+      }
+      
+      if(typeof payload.oauth.error === 'string' && exports.onOAuthError !== null) {
+        exports.onOAuthError(payload.oauth.error);
+      }
 
     } else {
 
