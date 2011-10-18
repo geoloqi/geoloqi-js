@@ -100,6 +100,21 @@ geoloqi.maps = (function() {
       opened: false,
       toggleInfoOnClick: true,
       openAfterDrag: true
+    },
+    events : {
+      dragstart : null,
+      dragend : null,
+      drag : null,
+      open : null,
+      close : null,
+      lock : null,
+      unlock : null,
+      radius_changed : null,
+      position_changed: null,
+      create : null,
+      show : null,
+      hide : null,
+      click : null
     }
   };
 
@@ -119,7 +134,7 @@ geoloqi.maps = (function() {
 
   //Returns the ideal radius for a map
   exports.helpers.getIdealRadiusForMap = function(fillPercent){
-    fraction = (if typeof fillPercent != 'undefined') : 100/fillPercent : 4;
+    fraction = (typeof fillPercent != 'undefined') ? 100/fillPercent : 4;
     var bounds = map.getBounds();
     var ne = bounds.getNorthEast();
     var sw = bounds.getSouthWest();
@@ -142,7 +157,7 @@ geoloqi.maps = (function() {
 
       this.options.icon = this.style.marker.icon;
       this.options.shadow = this.style.marker.shadow;
-      
+
       if(this.options.position instanceof google.maps.LatLng === false){
         this.options.position = new google.maps.LatLng(this.options.position.latitude, this.options.position.longitude);
       }
@@ -152,6 +167,8 @@ geoloqi.maps = (function() {
       } else {
         opts.draggable = false;
       }
+
+      this.events = util.merge(defaults.events, opts.events);
 
       (init) ? this.initPin() : '';
     };
@@ -168,11 +185,13 @@ geoloqi.maps = (function() {
         map = (typeof map != "undefined") ? map : defaults.map;
         this.marker.setVisible(true);
         this.marker.setMap(map);
+        google.maps.event.trigger(this.marker, "show");
         return this;
       },
 
       removeFromMap: function() {
         this.marker.setMap(null);
+        google.maps.event.trigger(this.marker, "hide");
         return this;
       },
 
@@ -232,6 +251,17 @@ geoloqi.maps = (function() {
         var self = this;
         this.marker = new google.maps.Marker(this.options);
 
+        //Drag Start
+        google.maps.event.addListener(this.marker, "dragstart", function(event){
+          (typeof self.events.dragstart == "function") ? self.events.dragstart(event) : null;
+        });
+
+        //Drag
+        google.maps.event.addListener(this.marker, "drag", function(event){
+          (typeof self.events.drag == "function") ? self.events.drag(event) : null;
+        });
+
+        //Drag End
         google.maps.event.addListener(this.marker, "dragend", function(event) {
 
           if(self.options.autopan){
@@ -239,7 +269,21 @@ geoloqi.maps = (function() {
             map.panTo(self.getPosition());
           };
 
+          (typeof self.events.dragend == "function") ? self.events.dragend(event) : null;
+
         });
+
+        //Position Changed
+        google.maps.event.addListener(this.marker, "position_changed", function(event){
+          (typeof self.events.position_changed == "function") ? self.events.position_changed(event) : null;
+        });
+
+        //Click
+        google.maps.event.addListener(this.marker, "click", function(event){
+          (typeof self.events.click == "function") ? self.events.click(event) : null;
+        });
+
+        (typeof this.events.create == "function") ? this.events.create() : null;
 
       }
 
@@ -285,23 +329,6 @@ geoloqi.maps = (function() {
             this.circles[i].circle.setMap(this.getMap());
           }
         }
-        return this;
-      }
-
-      this.showOnMap = function(map){
-        newMap = (typeof map != "undefined") ? map : defaults.map;
-        this.line.setMap(newMap);
-        this.handle.setMap(newMap);
-        this.marker.setMap(newMap);
-        this.showCircles();
-        return this;
-      }
-
-      this.removeFromMap = function() {
-        this.hideCircles();
-        this.line.setMap(null);
-        this.handle.setMap(null);
-        this.marker.setMap(null);
         return this;
       }
 
@@ -407,6 +434,18 @@ geoloqi.maps = (function() {
         this.updateHandle();
         this.updateLine();
 
+        google.maps.event.addListener(this.marker, "hide", function(event) {
+          self.handle.setMap(null);
+          self.line.setMap(null);
+          self.hideCircles();  
+        });
+
+        google.maps.event.addListener(this.marker, "show", function(event) {
+          self.handle.setMap(self.getMap());
+          self.line.setMap(self.getMap());
+          self.showCircles();  
+        });
+
         //Update the handle and line when the marker is moved
         google.maps.event.addListener(this.marker, "position_changed", function(event) {
           self.updateHandle();
@@ -501,19 +540,6 @@ geoloqi.maps = (function() {
       this.options = util.merge(defaults.pin, opts);
       this.style = exports.styles[this.options.style];
       this.infoOptions = util.merge(util.merge(defaults.info, this.style.info), opts);
-
-      this.removeFromMap = function(){
-        this.info.close();
-        this.marker.setMap(null);
-        return this;
-      };
-
-      this.showOnMap = function(map){
-        map = (typeof map != "undefined") ? map : defaults.map;
-        this.info.open(map, this.marker);
-        this.marker.setMap(map);
-        return this;
-      };
 
       this.hideInfo = function() {
         this.opened = false;
@@ -613,6 +639,10 @@ geoloqi.maps = (function() {
           });
         }
 
+        google.maps.event.addListener(this.marker, "hide", function(event) {
+          this.info.close(); 
+        });
+
         if(this.info){
           google.maps.event.addListener(this.info, 'close', function(){
             self.opened = false;
@@ -645,23 +675,6 @@ geoloqi.maps = (function() {
     init = (typeof init != "undefined") ? init : true; //Turn on prototypes
 
     var object = function() {
-
-      this.removeFromMap = function() {
-        this.marker.setMap(null);
-        this.handle.setMap(null);
-        this.line.setMap(null);
-        this.hideCircles();
-        return this;
-      };
-
-      this.showOnMap = function(map) {
-        map = (typeof map != "undefined") ? map : defaults.map;
-        this.marker.setMap(map);
-        this.handle.setMap(map);
-        this.line.setMap(map);
-        this.showCircles();
-        return this;
-      };
 
       this.initInfoboxAndRadius = function() {
         var self = this;
