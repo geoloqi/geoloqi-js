@@ -4,9 +4,12 @@ var geoloqi = (function () {
     self = this,
     exports = {},
     apiUrl = 'https://api.geoloqi.com',
-    receiverUrl = apiUrl + '/js/receiver.html',
+    receiverPath = '/js/',
+    receiverUrl = apiUrl + receiverPath + 'receiver.html',
     oauthUrl = 'https://geoloqi.com',
     oauthPath = '/oauth/authorize',
+    fullOauthUrl = oauthUrl + oauthPath,
+    oauthReceiverSwf = oauthUrl + '/swf/easyxdm.swf',
     geoloqiRootId = 'geoloqi-root',
     iframe = null,
     cookieName = '_geoloqi_auth',
@@ -70,15 +73,14 @@ var geoloqi = (function () {
     self.config = config;
 
     if (fragment !== "") {
-      processFragmentQueryString(fragment);
+      processAuth(fragment);
     }
   }
   exports.init = init;
   exports.auth = auth;
 
-  function processFragmentQueryString(fragment) {
-    newAuth = util.objectify(fragment);
-
+  function processAuth(fragment) {
+    var newAuth = util.objectify(fragment);
     if (newAuth.access_token && newAuth.expires_in) {
       self.auth = newAuth;
       util.cookie.set(JSON.stringify(newAuth), newAuth.expires_in);
@@ -116,18 +118,40 @@ var geoloqi = (function () {
 
       if (popup === true) {
         args.mode = 'popup';
-      }
-      url = oauthUrl + oauthPath + '?' + util.serialize(args);
-
-      if (popup === true) {
-        var popupWindow = window.open(url,'Authenticate','height=500,width=700');
-        	if (window.focus) {
-        	  popupWindow.focus();
-        	}
+        triggerPopup(util.serialize(args));
       } else {
+        url = oauthUrl + oauthPath + '?' + util.serialize(args);
         window.location = url;
       }
     }
+  }
+
+  function triggerPopup(qs) {
+    proxy = new easyXDM.Rpc({
+      local: "easyXDM/name.html",
+      swf: oauthReceiverSwf,
+      remote: oauthUrl+'/oauth/remote?'+qs,
+      remoteHelper: oauthUrl + "/easyXDM/name.html"
+    }, {
+      remote: {
+        open: {},
+        postMessage: {}
+      },
+      
+      local: {
+        postMessage: function(data) {
+          processAuth(JSON.parse(data.payload).oauth.auth);
+        }
+      }
+    });
+    
+    var popupWindow = window.open(oauthUrl+'/oauth/blank','authenticate_popup','height=500, width=700');
+    /*
+    if (window.focus) {
+      popupWindow.focus();
+    }
+    */
+    proxy.open("authenticate_popup");
   }
 
   function logged_in() {
