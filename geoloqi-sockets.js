@@ -1,9 +1,3 @@
-/* Events
-start
-onlocation
-disconnect 
-*/
-
 if(typeof geoloqi === 'undefined') {
   var geoloqi = {};
 }
