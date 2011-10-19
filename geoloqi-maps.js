@@ -363,6 +363,9 @@ geoloqi.maps = (function() {
           });
           this.circles[i].circle.bindTo('center', this.marker, 'position');
         }
+
+        google.maps.event.trigger(this.marker, "radius_changed");
+
         return this;
       };
 
@@ -392,6 +395,7 @@ geoloqi.maps = (function() {
         this.setDraggable(false)
         this.hideHandle();
         this.isLocked = true;
+        google.maps.event.trigger(self.marker, "locked");
         return this;
       }
 
@@ -401,6 +405,7 @@ geoloqi.maps = (function() {
           this.showHandle();
         }
         this.isLocked = false;
+        google.maps.event.trigger(self.marker, "unlocked");
         return this;
       }
 
@@ -515,6 +520,7 @@ geoloqi.maps = (function() {
           if(!bounds.contains(self.handle.getPosition())){
             exports.helpers.fitMapToRadius(self.marker.getPosition(), self.getRadius());
           }
+          google.maps.event.trigger(self.marker, "radius_changed");
         });
 
       };
@@ -590,11 +596,13 @@ geoloqi.maps = (function() {
         var self = this;
 
         this.opened = this.infoOptions.opened; //Only for use infobox
+        this.infoOptions.position = null; //info will be attached to pin
 
         if(typeof this.options.content == 'string'){
           if(this.infoOptions.useInfobox){
             this.info = new InfoBox(this.infoOptions);
           } else {
+            console.log(this.infoOptions);
             this.info = new google.maps.InfoWindow(this.infoOptions);
           }
         } else if (this.options.content instanceof InfoBox || this.options.content instanceof google.maps.InfoWindow) {
