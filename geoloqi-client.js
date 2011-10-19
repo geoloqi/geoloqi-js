@@ -46,6 +46,17 @@ var geoloqi = (function () {
           payload.error = JSON.parse(payload.error);
         }
 
+        console.log("===============Start Debug===================");
+
+        console.log("anonymousCallbacks");
+        console.log(anonymousCallbacks);
+
+        console.log("this");
+        console.log(this);
+
+        console.log("self");
+        console.log(self);
+        
         anonymousCallbacks[payload.callbackId](payload.response, payload.error);
       }
     }
@@ -158,8 +169,8 @@ var geoloqi = (function () {
 		socket.postMessage(JSON.stringify(message));
   }
 
-  function get(path, callback) {
-    execute('GET', path, {}, callback);
+  function get(path, args, callback) {
+    execute('GET', path, args, callback);
   }
   exports.get = get;
 
@@ -262,9 +273,11 @@ var geoloqi = (function () {
   return exports;
 }());
 
+/*
 window.onload = function () {
   geoloqi.init();
 }
+*/
 
 window.addEventListener("message", function(event) {
   geoloqi.receive(event);

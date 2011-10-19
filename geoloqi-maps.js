@@ -119,7 +119,7 @@ geoloqi.maps = (function() {
 
   //Returns the ideal radius for a map
   exports.helpers.getIdealRadiusForMap = function(fillPercent){
-    fraction = (if typeof fillPercent != 'undefined') : 100/fillPercent : 4;
+    fraction = (typeof fillPercent != 'undefined') ? 100/fillPercent : 4;
     var bounds = map.getBounds();
     var ne = bounds.getNorthEast();
     var sw = bounds.getSouthWest();
