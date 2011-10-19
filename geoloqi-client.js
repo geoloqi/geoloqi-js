@@ -46,16 +46,6 @@ var geoloqi = (function () {
           payload.error = JSON.parse(payload.error);
         }
 
-        console.log("===============Start Debug===================");
-
-        console.log("anonymousCallbacks");
-        console.log(anonymousCallbacks);
-
-        console.log("this");
-        console.log(this);
-
-        console.log("self");
-        console.log(self);
         
         anonymousCallbacks[payload.callbackId](payload.response, payload.error);
       }
@@ -151,6 +141,20 @@ var geoloqi = (function () {
   }
   exports.expire = expire;
 
+  function get(path, args, callback) {
+    if(arguments.length == 3) {
+      execute('GET', path, args, callback);
+    } else if(arguments.length == 2) {
+      execute('GET', arguments[0], {}, arguments[1]);
+    }
+  }
+  exports.get = get;
+
+  function post(path, args, callback) {
+    execute('POST', path, args, callback);
+  }
+  exports.post = post;
+
   function execute(method, path, args, callback) {
     var callbackId = util.guid(),
       message = {};
@@ -168,16 +172,7 @@ var geoloqi = (function () {
 		anonymousCallbacks[callbackId] = callback;
 		socket.postMessage(JSON.stringify(message));
   }
-
-  function get(path, args, callback) {
-    execute('GET', path, args, callback);
-  }
-  exports.get = get;
-
-  function post(path, args, callback) {
-    execute('POST', path, args, callback);
-  }
-  exports.post = post;
+  exports.execute = execute;
 
   /* Receive the response from the iframe and execute the callback stored in an array (yes, this is how you're supposed to do it).
      We also check to make sure it was actually sent from Geoloqi, because other API libraries may be using postMessage as well. */
