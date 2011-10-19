@@ -7,11 +7,11 @@
     <script type="text/javascript">
       window.onload = function () {
         geoloqi.init({'client_id': '665a737a5abe1fac5cced7149f03a62b'});
-        
+
         geoloqi.onAuthorize = function() {
           console.log('Authorized!');
         };
-        
+
         geoloqi.onOAuthError = function(error) {
           console.log('Login Error: '+error);
         }
