@@ -45,17 +45,6 @@ var geoloqi = (function () {
         if (typeof payload.error === 'string') {
           payload.error = JSON.parse(payload.error);
         }
-
-        console.log("===============Start Debug===================");
-
-        console.log("anonymousCallbacks");
-        console.log(anonymousCallbacks);
-
-        console.log("this");
-        console.log(this);
-
-        console.log("self");
-        console.log(self);
         
         anonymousCallbacks[payload.callbackId](payload.response, payload.error);
       }
@@ -70,7 +59,7 @@ var geoloqi = (function () {
     var fragment = document.location.hash.substring(1),
         newAuth = {};
 
-    self.auth = JSON.parse(util.cookie.get());
+    exports.auth = JSON.parse(util.cookie.get());
 
     self.config = config;
 
@@ -85,7 +74,7 @@ var geoloqi = (function () {
     var newAuth = util.objectify(fragment);
 
     if (newAuth.access_token && newAuth.expires_in) {
-      self.auth = newAuth;
+      exports.auth = newAuth;
       util.cookie.set(JSON.stringify(newAuth), newAuth.expires_in);
 
       if(exports.onAuthorize !== null) {
@@ -141,12 +130,12 @@ var geoloqi = (function () {
   }
 
   function logged_in() {
-    return (self.auth && self.auth.access_token) ? true : false;
+    return (exports.auth && exports.auth.access_token) ? true : false;
   }
   exports.logged_in = logged_in;
 
   function expire() {
-    self.auth = null;
+    exports.auth = null;
     util.cookie.erase();
   }
   exports.expire = expire;
@@ -162,7 +151,7 @@ var geoloqi = (function () {
     message = {'method': method,
                'path': path,
                'args': args,
-               'accessToken': self.auth.access_token,
+               'accessToken': exports.auth.access_token,
                'callbackId': callbackId,
                'version': version};
 		anonymousCallbacks[callbackId] = callback;
