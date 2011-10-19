@@ -9,8 +9,6 @@ var geoloqi = (function () {
     oauthUrl = 'https://geoloqi.com',
     oauthPath = '/oauth/authorize',
     fullOauthUrl = oauthUrl + oauthPath,
-    oauthReceiverSwf = oauthUrl + '/swf/easyxdm.swf',
-    geoloqiRootId = 'geoloqi-root',
     iframe = null,
     cookieName = '_geoloqi_auth',
     config = {},
@@ -69,16 +67,9 @@ var geoloqi = (function () {
   exports.onOAuthError = onOAuthError;
 
   function init(config) {
-    var iframeContainer = document.getElementById(geoloqiRootId),
-      fragment = document.location.hash.substring(1),
-      newAuth = {};
+    var fragment = document.location.hash.substring(1),
+        newAuth = {};
 
-    iframe = document.createElement("iframe");
-    iframe.setAttribute("src", receiverUrl);
-    iframe.style.width = "0px";
-    iframe.style.height = "0px";
-    iframe.style.border = "0px";
-    iframeContainer.appendChild(iframe);
     self.auth = JSON.parse(util.cookie.get());
 
     self.config = config;
@@ -92,6 +83,7 @@ var geoloqi = (function () {
 
   function processAuth(fragment) {
     var newAuth = util.objectify(fragment);
+
     if (newAuth.access_token && newAuth.expires_in) {
       self.auth = newAuth;
       util.cookie.set(JSON.stringify(newAuth), newAuth.expires_in);
@@ -103,13 +95,18 @@ var geoloqi = (function () {
   }
 
   function returnFromPopup(auth) {
-    processFragmentQueryString(auth);
+    processAuth(auth);
   }
 
   function authenticate() {
-    authenticatePrompt(false);
+    authenticatePrompt(true);
   }
   exports.authenticate = authenticate;
+
+  function authenticateWithRedirect() {
+    authenticatePrompt(false);
+  }
+  exports.authenticateWithRedirect = authenticate.authenticateWithRedirect;
 
   function authenticateWithPopup() {
     authenticatePrompt(true);
@@ -129,40 +126,18 @@ var geoloqi = (function () {
 
       if (popup === true) {
         args.mode = 'popup';
-        triggerPopup(util.serialize(args));
+      }
+      url = oauthUrl + oauthPath + '?' + util.serialize(args);
+
+      if (popup === true) {
+        var popupWindow = window.open(url,'_geoloqi_auth_popup','height=500,width=700');
+         if (window.focus) {
+         popupWindow.focus();
+         }
       } else {
-        url = oauthUrl + oauthPath + '?' + util.serialize(args);
         window.location = url;
       }
     }
-  }
-
-  function triggerPopup(qs) {
-    proxy = new easyXDM.Rpc({
-      local: "easyXDM/name.html",
-      swf: oauthReceiverSwf,
-      remote: oauthUrl+'/oauth/remote?'+qs,
-      remoteHelper: oauthUrl + "/easyXDM/name.html"
-    }, {
-      remote: {
-        open: {},
-        postMessage: {}
-      },
-      
-      local: {
-        postMessage: function(data) {
-          processAuth(JSON.parse(data.payload).oauth.auth);
-        }
-      }
-    });
-    
-    var popupWindow = window.open(oauthUrl+'/oauth/blank','authenticate_popup','height=500, width=700');
-    /*
-    if (window.focus) {
-      popupWindow.focus();
-    }
-    */
-    proxy.open("authenticate_popup");
   }
 
   function logged_in() {
@@ -208,7 +183,7 @@ var geoloqi = (function () {
      We also check to make sure it was actually sent from Geoloqi, because other API libraries may be using postMessage as well. */
 
   function receive(event) {
-    if(event.origin != apiUrl && event.origin != oauthUrl) {
+    if(event.origin != oauthUrl) {
       return false;
     }
 
@@ -219,7 +194,7 @@ var geoloqi = (function () {
       if(typeof payload.oauth.auth === 'string') {
         returnFromPopup(payload.oauth.auth);
       }
-      
+
       if(typeof payload.oauth.error === 'string' && exports.onOAuthError !== null) {
         exports.onOAuthError(payload.oauth.error);
       }
@@ -298,11 +273,12 @@ var geoloqi = (function () {
   return exports;
 }());
 
+/*
 window.onload = function () {
   geoloqi.init();
 }
-/*
+*/
+
 window.addEventListener("message", function(event) {
   geoloqi.receive(event);
 });
-*/
