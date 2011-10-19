@@ -224,7 +224,7 @@ geoloqi.maps = (function() {
           position = new google.maps.LatLng(position.latitude, position.longitude);
         }
         
-        this.setPosition(latLng);
+        this.setPosition(position);
 
         if(autopan){
           this.centerHere();
@@ -265,7 +265,6 @@ geoloqi.maps = (function() {
         google.maps.event.addListener(this.marker, "dragend", function(event) {
 
           if(self.options.autopan){
-
             map.panTo(self.getPosition());
           };
 
@@ -405,7 +404,7 @@ geoloqi.maps = (function() {
           this.showHandle();
         }
         this.isLocked = false;
-        google.maps.event.trigger(self.marker, "unlocked");
+        google.maps.event.trigger(this.marker, "unlocked");
         return this;
       }
 
@@ -550,6 +549,7 @@ geoloqi.maps = (function() {
       this.hideInfo = function() {
         this.opened = false;
         this.info.close();
+        google.maps.event.trigger(self.marker, "close");
         return this;
       };
 
@@ -557,8 +557,19 @@ geoloqi.maps = (function() {
         this.opened = true;
         this.delayedInfobox = true;
         this.info.open(defaults.map, this.marker);
+        google.maps.event.trigger(self.marker, "open");
         return this;
       };
+
+      this.open = function() {
+        this.showInfo();
+        return this;
+      }
+
+      this.close = function() {
+        this.hideInfo();
+        return this;
+      }
 
       this.toggleInfo = function() {
         if(this.opened) {
@@ -651,16 +662,14 @@ geoloqi.maps = (function() {
           this.info.close(); 
         });
 
-        if(this.info){
-          google.maps.event.addListener(this.info, 'close', function(){
-            self.opened = false;
-          });
+        google.maps.event.addListener(this.info, 'close', function(){
+          self.opened = false;
+        });
 
-          google.maps.event.addListener(this.info, 'closeclick', function(){
-            self.opened = false;
-          });
-        }
-
+        google.maps.event.addListener(this.info, 'closeclick', function(){
+          self.opened = false;
+        });
+      
         if(this.opened){
           self.showInfo();
         };
