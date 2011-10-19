@@ -251,17 +251,14 @@ geoloqi.maps = (function() {
         var self = this;
         this.marker = new google.maps.Marker(this.options);
 
-        //Drag Start
         google.maps.event.addListener(this.marker, "dragstart", function(event){
           (typeof self.events.dragstart == "function") ? self.events.dragstart(event) : null;
         });
 
-        //Drag
         google.maps.event.addListener(this.marker, "drag", function(event){
           (typeof self.events.drag == "function") ? self.events.drag(event) : null;
         });
 
-        //Drag End
         google.maps.event.addListener(this.marker, "dragend", function(event) {
 
           if(self.options.autopan){
@@ -272,12 +269,10 @@ geoloqi.maps = (function() {
 
         });
 
-        //Position Changed
         google.maps.event.addListener(this.marker, "position_changed", function(event){
           (typeof self.events.position_changed == "function") ? self.events.position_changed(event) : null;
         });
 
-        //Click
         google.maps.event.addListener(this.marker, "click", function(event){
           (typeof self.events.click == "function") ? self.events.click(event) : null;
         });
@@ -597,9 +592,14 @@ geoloqi.maps = (function() {
           this.close();
         }
 
+        google.maps.event.addListener(this.info, 'close', function(){
+          self.opened = false;
+        });
+
         google.maps.event.addListener(this.info, 'closeclick', function(){
           self.opened = false;
         });
+
         return this;
       };
 
@@ -611,13 +611,13 @@ geoloqi.maps = (function() {
 
         if(typeof this.options.content == 'string'){
           if(this.infoOptions.useInfobox){
-            this.info = new InfoBox(this.infoOptions);
+            this.setInfo(new InfoBox(this.infoOptions));
           } else {
             console.log(this.infoOptions);
-            this.info = new google.maps.InfoWindow(this.infoOptions);
+            this.setInfo(new google.maps.InfoWindow(this.infoOptions));
           }
         } else if (this.options.content instanceof InfoBox || this.options.content instanceof google.maps.InfoWindow) {
-          this.info = this.options.content;
+          this.setInfo(this.options.content);
           this.options.toggleInfoOnClick = true;
           this.opened = false;
         } else {
@@ -662,13 +662,7 @@ geoloqi.maps = (function() {
           this.info.close(); 
         });
 
-        google.maps.event.addListener(this.info, 'close', function(){
-          self.opened = false;
-        });
-
-        google.maps.event.addListener(this.info, 'closeclick', function(){
-          self.opened = false;
-        });
+        
       
         if(this.opened){
           self.showInfo();
@@ -676,11 +670,11 @@ geoloqi.maps = (function() {
 
       };
 
-      (init) ? this.initInfobox() : ''
+      (init) ? this.initInfobox() : null;
 
     };
 
-    (inherit) ? object.prototype = new exports.pins.Basic(opts) : ''
+    (inherit) ? object.prototype = new exports.pins.Basic(opts) : null;
 
     return new object();
   };
