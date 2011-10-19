@@ -4,9 +4,12 @@ var geoloqi = (function () {
     self = this,
     exports = {},
     apiUrl = 'https://api.geoloqi.com',
-    receiverUrl = apiUrl + '/js/receiver.html',
+    receiverPath = '/js/',
+    receiverUrl = apiUrl + receiverPath + 'receiver.html',
     oauthUrl = 'https://geoloqi.com',
     oauthPath = '/oauth/authorize',
+    fullOauthUrl = oauthUrl + oauthPath,
+    oauthReceiverSwf = oauthUrl + '/swf/easyxdm.swf',
     geoloqiRootId = 'geoloqi-root',
     iframe = null,
     cookieName = '_geoloqi_auth',
@@ -15,6 +18,51 @@ var geoloqi = (function () {
     util = {},
     onAuthorize = null,
     onOAuthError = null;
+
+  var socket = new easyXDM.Socket({
+    remote: receiverUrl,
+    onMessage: function(message, origin){
+      if(origin != apiUrl && origin != oauthUrl) {
+        return false;
+      }
+
+      var payload = JSON.parse(message);
+
+      if(typeof payload.oauth === 'object') {
+
+        if(typeof payload.oauth.auth === 'string') {
+          returnFromPopup(payload.oauth.auth);
+        }
+
+        if(typeof payload.oauth.error === 'string' && exports.onOAuthError !== null) {
+          exports.onOAuthError(payload.oauth.error);
+        }
+
+      } else {
+
+        if (typeof payload.response === 'string') {
+          payload.response = JSON.parse(payload.response);
+        }
+
+        if (typeof payload.error === 'string') {
+          payload.error = JSON.parse(payload.error);
+        }
+
+        console.log("===============Start Debug===================");
+
+        console.log("anonymousCallbacks");
+        console.log(anonymousCallbacks);
+
+        console.log("this");
+        console.log(this);
+
+        console.log("self");
+        console.log(self);
+        
+        anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+      }
+    }
+  });
 
   exports.config = config;
   exports.onAuthorize = onAuthorize;
@@ -36,15 +84,14 @@ var geoloqi = (function () {
     self.config = config;
 
     if (fragment !== "") {
-      processFragmentQueryString(fragment);
+      processAuth(fragment);
     }
   }
   exports.init = init;
   exports.auth = auth;
 
-  function processFragmentQueryString(fragment) {
-    newAuth = util.objectify(fragment);
-
+  function processAuth(fragment) {
+    var newAuth = util.objectify(fragment);
     if (newAuth.access_token && newAuth.expires_in) {
       self.auth = newAuth;
       util.cookie.set(JSON.stringify(newAuth), newAuth.expires_in);
@@ -82,18 +129,40 @@ var geoloqi = (function () {
 
       if (popup === true) {
         args.mode = 'popup';
-      }
-      url = oauthUrl + oauthPath + '?' + util.serialize(args);
-
-      if (popup === true) {
-        var popupWindow = window.open(url,'Authenticate','height=500,width=700');
-        	if (window.focus) {
-        	  popupWindow.focus();
-        	}
+        triggerPopup(util.serialize(args));
       } else {
+        url = oauthUrl + oauthPath + '?' + util.serialize(args);
         window.location = url;
       }
     }
+  }
+
+  function triggerPopup(qs) {
+    proxy = new easyXDM.Rpc({
+      local: "easyXDM/name.html",
+      swf: oauthReceiverSwf,
+      remote: oauthUrl+'/oauth/remote?'+qs,
+      remoteHelper: oauthUrl + "/easyXDM/name.html"
+    }, {
+      remote: {
+        open: {},
+        postMessage: {}
+      },
+      
+      local: {
+        postMessage: function(data) {
+          processAuth(JSON.parse(data.payload).oauth.auth);
+        }
+      }
+    });
+    
+    var popupWindow = window.open(oauthUrl+'/oauth/blank','authenticate_popup','height=500, width=700');
+    /*
+    if (window.focus) {
+      popupWindow.focus();
+    }
+    */
+    proxy.open("authenticate_popup");
   }
 
   function logged_in() {
@@ -122,11 +191,11 @@ var geoloqi = (function () {
                'callbackId': callbackId,
                'version': version};
 		anonymousCallbacks[callbackId] = callback;
-    iframe.contentWindow.postMessage(JSON.stringify(message), receiverUrl);
+		socket.postMessage(JSON.stringify(message));
   }
 
-  function get(path, callback) {
-    execute('GET', path, {}, callback);
+  function get(path, args, callback) {
+    execute('GET', path, args, callback);
   }
   exports.get = get;
 
@@ -232,7 +301,8 @@ var geoloqi = (function () {
 window.onload = function () {
   geoloqi.init();
 }
-
+/*
 window.addEventListener("message", function(event) {
   geoloqi.receive(event);
 });
+*/
