@@ -17,7 +17,7 @@ Consult the demos folder for code examples. Don't forget to create an applicatio
 
     <html>
       <head>
-        <script type="text/javascript" src="https://api.geoloqi.com/js/geoloqi-client.js"></script>
+        <script type="text/javascript" src="https://api.geoloqi.com/js/geoloqi.min.js"></script>
         <script type="text/javascript">
           window.onload = function () {
             geoloqi.init({'client_id': 'YOUR_CLIENT_ID_FROM_DEVELOPERS.GEOLOQI.COM'});
