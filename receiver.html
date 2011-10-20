@@ -48,6 +48,15 @@
           };
 
           var fullUrl = apiUrl+o.path;
+	  if(o.method == 'GET' && typeof(o.args) === 'object') {
+            var splitPath = o.path.split('?'),
+                queryObj = o.args;
+            if(splitPath.length === 2) {
+              queryObj = util.merge(queryObj, util.objectify(splitPath[1]));
+            }
+
+            fullUrl = apiUrl + splitPath[0] + '?' + util.serialize(queryObj);
+          }
 
           xhr.open(o.method, fullUrl, true);
 
@@ -84,6 +93,32 @@
             } catch(e) {}
           }
           return false;
+        }
+
+        util.serialize = function (obj) {
+          var str = [];
+          for (var p in obj)
+            str.push(p + "=" + encodeURIComponent(obj[p]));
+          return str.join("&");
+        }
+
+        util.objectify = function (queryString) {
+          var result = {};
+          var re = /([^&=]+)=([^&]*)/g;
+          var m;
+
+          while (m = re.exec(queryString)) {
+            result[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+          }
+
+          return result;
+        }
+
+        util.merge = function(obj1, obj2){
+          var obj3 = {};
+          for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
+          for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
+          return obj3;
         }
 
         return exports;
