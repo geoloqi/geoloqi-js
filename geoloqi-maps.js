@@ -663,6 +663,14 @@ geoloqi.maps = (function() {
           this.info.close(); 
         });
 
+       google.maps.event.addListener(this.marker, "open", function(event){
+          (typeof self.events.open == "function") ? self.events.open(self) : null;
+        });
+
+        google.maps.event.addListener(this.marker, "close", function(event){
+          (typeof self.events.close == "function") ? self.events.close(self) : null;
+        });
+
         if(this.opened){
           self.showInfo();
         };
