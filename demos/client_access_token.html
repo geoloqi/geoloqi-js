@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="http://api.geoloqi.com/js/geoloqi.min.js"></script>
+    <script type="text/javascript">
+      window.onload = function () {
+        geoloqi.init();
+        geoloqi.auth = {'access_token': 'YOUR ACCESS TOKEN GOES HERE. Get yours at https://developers.geoloqi.com (in the "Getting Started" section).'};
+
+        geoloqi.onAuthorize = function() {
+          console.log('Authorized!');
+        };
+
+        geoloqi.onOAuthError = function(error) {
+          console.log('Login Error: '+error);
+        }
+      }
+
+      function getProfile() {
+        geoloqi.get('account/profile', function(result, error) {
+          console.log(result);
+        });
+      }
+
+      function changeProfileWebsite() {
+        geoloqi.post('account/profile', {'website':'http://limpbizkithottubs.com'}, function(result, error) {
+          console.log(result);
+        });
+      }
+    </script>
+    <title>Geoloqi Client JS Test with Access Token</title>
+  </head>
+  <body>
+    <a href="#" onclick="getProfile(); return false">Get Profile</a>
+    <br>
+    <a href="#" onclick="changeProfileWebsite(); return false">Change Profile Website</a>
+    <br>
+  </body>
+</html>
