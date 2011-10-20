@@ -30,15 +30,15 @@
     <title>Geoloqi Client JS Test</title>
   </head>
   <body>
-    <a href="#" onclick="geoloqi.authenticate(); return false">Authenticate Session (direct)</a>
+    <a href="#" onclick="geoloqi.authenticate(); return false">Login (direct)</a>
     <br>
-    <a href="#" onclick="geoloqi.authenticateWithPopup(); return false">Authenticate Session (with popup dialog)</a>
+    <a href="#" onclick="geoloqi.authenticateWithPopup(); return false">Login with Popup (IE not supported)</a>
     <br>
     <a href="#" onclick="getProfile(); return false">Get Profile</a>
     <br>
     <a href="#" onclick="changeProfileWebsite(); return false">Change Profile Website</a>
     <br>
-    <a href="#" onclick="geoloqi.expire(); return false">Expire Session</a>
+    <a href="#" onclick="geoloqi.expire(); return false">Logout</a>
     <br>
     <a href="#" onclick="console.log(geoloqi.logged_in()); return false">Is Logged In?</a>
     <br><br>
