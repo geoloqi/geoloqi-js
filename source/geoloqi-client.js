@@ -162,6 +162,10 @@ var geoloqi = (function () {
       throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
     }
 
+    if(method == 'POST' && typeof(args) === 'string') {
+      args = util.objectify(args);
+    }
+
     message = {'method': method,
                'path': path,
                'args': args,
