@@ -111,10 +111,13 @@ geoloqi.maps = (function() {
       unlock : null,
       radius_changed : null,
       position_changed: null,
+      map_changed: null,
       create : null,
       show : null,
       hide : null,
-      click : null
+      click : null,
+      circlemove: null,
+      circleleave: null
     }
   };
 
@@ -247,34 +250,51 @@ geoloqi.maps = (function() {
         return this.marker.getPosition();
       },
 
+      getLat: function(){
+        pos = this.getPosition();
+        return pos.lat();
+      },
+
+      getLng: function(){
+        pos = this.getPosition();
+        return pos.lng();
+      },
+
+      setMap: function(map){
+        this.marker.setMap(map);
+        google.maps.event.trigger(this.marker, "map_changed");
+      },
+
       initPin: function() {
         var self = this;
         this.marker = new google.maps.Marker(this.options);
 
         google.maps.event.addListener(this.marker, "dragstart", function(event){
-          (typeof self.events.dragstart == "function") ? self.events.dragstart(event) : null;
+          (typeof self.events.dragstart == "function") ? self.events.dragstart.apply(self, [event]) : null;
         });
 
         google.maps.event.addListener(this.marker, "drag", function(event){
-          (typeof self.events.drag == "function") ? self.events.drag(event) : null;
+          (typeof self.events.drag == "function") ? self.events.drag.apply(self, [event]) : null;
         });
 
         google.maps.event.addListener(this.marker, "dragend", function(event) {
-
           if(self.options.autopan){
             map.panTo(self.getPosition());
           };
 
-          (typeof self.events.dragend == "function") ? self.events.dragend(event) : null;
-
+          (typeof self.events.dragend == "function") ? self.events.dragend.apply(self, [event]) : null;
         });
 
         google.maps.event.addListener(this.marker, "position_changed", function(event){
-          (typeof self.events.position_changed == "function") ? self.events.position_changed(event) : null;
+          (typeof self.events.position_changed == "function") ? self.events.position_changed.apply(self, [event]) : null;
+        });
+
+        google.maps.event.addListener(this.marker, "map_changed", function(event){
+          (typeof self.events.map_changed == "function") ? self.events.map_changed.apply(self) : null;
         });
 
         google.maps.event.addListener(this.marker, "click", function(event){
-          (typeof self.events.click == "function") ? self.events.click(event) : null;
+          (typeof self.events.click == "function") ? self.events.click.apply(self, [event]) : null;
         });
 
         (typeof this.events.create == "function") ? this.events.create() : null;
@@ -333,6 +353,7 @@ geoloqi.maps = (function() {
 
       // Setup Circles
       this.setupCircles = function(radius, showOnMap){
+        var self = this;
         radius = typeof(radius) != 'undefined' ? radius : this.radius; //default to this.radius
         showOnMap = (typeof showOnMap != "undefined") ?  showOnMap : null;
 
@@ -357,6 +378,14 @@ geoloqi.maps = (function() {
           });
           this.circles[i].circle.bindTo('center', this.marker, 'position');
         }
+        
+        google.maps.event.addListener(this.circles[0].circle, 'mousemove', function(){
+          (typeof self.events.circlemove == "function") ? self.events.circlemove.apply(self) : null;
+        });
+
+        google.maps.event.addListener(this.circles[0].circle, 'mouseout', function(){
+          (typeof self.events.circleleave == "function") ? self.events.circleleave.apply(self) : null;
+        });
 
         google.maps.event.trigger(this.marker, "radius_changed");
 
@@ -379,6 +408,11 @@ geoloqi.maps = (function() {
         return this;
       }
 
+      this.fitCircles = function(){
+        this.setupCircles(exports.helpers.getIdealRadiusForMap());
+        return this;
+      }
+
       this.showHandle = function() {
         this.line.setMap(this.getMap());
         this.handle.setMap(this.getMap());
@@ -386,20 +420,24 @@ geoloqi.maps = (function() {
       }
 
       this.lockPin = function(){
-        this.setDraggable(false)
-        this.hideHandle();
-        this.isLocked = true;
-        google.maps.event.trigger(this.marker, "locked");
+        if(!this.isLocked){
+          this.setDraggable(false);
+          this.isLocked = true;
+          this.hideHandle();
+          google.maps.event.trigger(this.marker, "locked");
+        }
         return this;
       }
 
       this.unlockPin = function() {
-        this.marker.setDraggable(true);
-        if(this.getMap()){
-          this.showHandle();
+        if(this.isLocked){
+          this.marker.setDraggable(true);
+          this.isLocked = false;
+          if(this.getMap()){
+            this.showHandle();
+          }
+          google.maps.event.trigger(this.marker, "unlocked");
         }
-        this.isLocked = false;
-        google.maps.event.trigger(this.marker, "unlocked");
         return this;
       }
 
@@ -439,9 +477,21 @@ geoloqi.maps = (function() {
           self.hideCircles();  
         });
 
+        google.maps.event.addListener(this.marker, "map_changed", function(event) {
+          if(!self.isLocked){
+            self.handle.setMap(self.getMap());
+            self.line.setMap(self.getMap());
+          }
+          for(var i = 0; i<=self.circles.length-1; i++) {
+            self.circles[i].circle.setMap(self.getMap());
+          };
+        });
+
         google.maps.event.addListener(this.marker, "show", function(event) {
-          self.handle.setMap(self.getMap());
-          self.line.setMap(self.getMap());
+          if(!self.isLocked){
+            self.handle.setMap(self.getMap());
+            self.line.setMap(self.getMap());
+          }
           self.showCircles();  
         });
 
@@ -457,29 +507,16 @@ geoloqi.maps = (function() {
           // handleHeading = google.maps.geometry.spherical.computeHeading(placeMarker.getPosition(), placeMarkerHandle.getPosition());
         });
 
-        // Update the position of the handle when the center is dragged
-        google.maps.event.addListener(this.marker, "drag", function(event) {
-          self.updateHandle();
+        google.maps.event.addListener(this.marker, "radius_changed", function(event){
+          (typeof self.events.radius_changed == "function") ? self.events.radius_changed.apply(self) : null;
         });
 
-        this.delayedHandle = false;
-
-        if(self.options.autopan){
-          google.maps.event.addListener(defaults.map, 'idle', function(event){
-            if(!self.isLocked && self.delayedHandle){
-              self.showHandle();
-            }
-            self.delayedHandle = true;
-          });
-        } else {
-          google.maps.event.addListener(this.marker, "dragend", function(event) {
-            if(!self.isLocked && self.delayedHandle){
-              self.showHandle();
-            }
-            self.delayedHandle = true;
-          });
-        }
-
+        // Update the position of the handle when the center is dragged
+        google.maps.event.addListener(this.marker, "dragend", function(event) {
+          self.updateHandle();
+          self.showHandle();
+        });
+        
         //Update Radius on handle drag
         google.maps.event.addListener(this.handle, "drag", function(event) {
 
@@ -580,6 +617,10 @@ geoloqi.maps = (function() {
         return this;
       };
 
+      this.getContent = function(html) {
+        return this.info.getContent();
+      };
+
       this.setInfo = function(obj, open){
         (typeof open == 'undefined') ? false : open;
         (this.info) ? this.info.close() : null;
@@ -613,18 +654,16 @@ geoloqi.maps = (function() {
           if(this.infoOptions.useInfobox){
             this.setInfo(new InfoBox(this.infoOptions));
           } else {
-            console.log(this.infoOptions);
             this.setInfo(new google.maps.InfoWindow(this.infoOptions));
           }
         } else if (this.options.content instanceof InfoBox || this.options.content instanceof google.maps.InfoWindow) {
           this.setInfo(this.options.content);
-          this.options.toggleInfoOnClick = true;
+          this.infoOptions.toggleInfoOnClick = true;
           this.opened = false;
         } else {
           this.info = null;
         }
         
-        console.log(this.infoOptions.toggleInfoOnClick);
         if(this.infoOptions.toggleInfoOnClick){
           this.isClickable = true;
           this.marker.setClickable(true);
@@ -640,7 +679,8 @@ geoloqi.maps = (function() {
         };
 
         google.maps.event.addListener(this.marker, "dragstart", function(event) {
-          self.hideInfo();
+          //self.hideInfo();
+          //self.info.hide();
         });
 
         this.delayedInfobox = false;
@@ -648,27 +688,29 @@ geoloqi.maps = (function() {
         if(self.options.autopan){
           google.maps.event.addListener(defaults.map, 'idle', function(event){
             if(!self.opened && self.options.openAfterDrag && self.delayedInfobox){
-              self.showInfo();
+              //self.showInfo();
+              //self.info.show();
             }
           });
         } else {
           google.maps.event.addListener(this.marker, "dragend", function(event) {
-            if(!self.opened && self.options.openAfterDrag && self.delayedInfobox){
-              self.showInfo();
+            if(!self.opened){
+              //self.showInfo();
+              //self.info.show();
             }
           });
         }
 
         google.maps.event.addListener(this.marker, "hide", function(event) {
-          this.info.close(); 
+          self.info.close(); 
         });
 
        google.maps.event.addListener(this.marker, "open", function(event){
-          (typeof self.events.open == "function") ? self.events.open(self) : null;
+          (typeof self.events.open == "function") ? self.events.open.apply(self, [event]) : null;
         });
 
         google.maps.event.addListener(this.marker, "close", function(event){
-          (typeof self.events.close == "function") ? self.events.close(self) : null;
+          (typeof self.events.close == "function") ? self.events.close.apply(self, [event]) : null;
         });
 
         if(this.opened){
@@ -708,6 +750,7 @@ geoloqi.maps = (function() {
             self.showInfo();
           }
         });
+
       }
 
       if(init){
@@ -727,7 +770,6 @@ geoloqi.maps = (function() {
   exports.InfoBox = function(content, styleKey){
 
     style = (typeof styleKey == 'undefined') ? exports.styles.default : exports.styles[styleKey];
-
     options = util.merge(defaults.info, style.info);
     options.content = content;
 

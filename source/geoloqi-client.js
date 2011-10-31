@@ -1,4 +1,4 @@
-var geoloqi = (function () {
+var geoloqi = (function() {
   var version = '0.0.1',
     anonymousCallbacks = {},
     self = this,
@@ -265,6 +265,7 @@ var geoloqi = (function () {
   }
 
   return exports;
+
 }());
 
 /*
