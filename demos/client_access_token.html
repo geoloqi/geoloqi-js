@@ -4,7 +4,8 @@
     <script type="text/javascript" src="http://api.geoloqi.com/js/geoloqi.min.js"></script>
     <script type="text/javascript">
       window.onload = function () {
-        geoloqi.init({'client_id': '665a737a5abe1fac5cced7149f03a62b'});
+        geoloqi.init();
+        geoloqi.auth = {'access_token': 'YOUR ACCESS TOKEN GOES HERE. Get yours at https://developers.geoloqi.com (in the "Getting Started" section).'};
 
         geoloqi.onAuthorize = function() {
           console.log('Authorized!');
@@ -27,20 +28,12 @@
         });
       }
     </script>
-    <title>Geoloqi Client JS Test</title>
+    <title>Geoloqi Client JS Test with Access Token</title>
   </head>
   <body>
-    <a href="#" onclick="geoloqi.authenticate(); return false">Login (direct)</a>
-    <br>
-    <a href="#" onclick="geoloqi.authenticateWithPopup(); return false">Login with Popup (IE not supported)</a>
-    <br>
     <a href="#" onclick="getProfile(); return false">Get Profile</a>
     <br>
     <a href="#" onclick="changeProfileWebsite(); return false">Change Profile Website</a>
     <br>
-    <a href="#" onclick="geoloqi.expire(); return false">Logout</a>
-    <br>
-    <a href="#" onclick="console.log(geoloqi.logged_in()); return false">Is Logged In?</a>
-    <br><br>
   </body>
 </html>

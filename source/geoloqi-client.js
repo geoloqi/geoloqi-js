@@ -1,21 +1,22 @@
-var geoloqi = (function() {
-  var version = '0.0.1',
-    anonymousCallbacks = {},
-    self = this,
-    exports = {},
-    apiUrl = 'https://api.geoloqi.com',
-    receiverPath = '/js/',
-    receiverUrl = apiUrl + receiverPath + 'receiver.html',
-    oauthUrl = 'https://geoloqi.com',
-    oauthPath = '/oauth/authorize',
-    fullOauthUrl = oauthUrl + oauthPath,
-    iframe = null,
-    cookieName = '_geoloqi_auth',
-    config = {},
-    auth = null,
-    util = {},
-    onAuthorize = null,
-    onOAuthError = null;
+
+var geoloqi = (function () {
+  var version = '1.0.2',
+  anonymousCallbacks = {},
+  self = this,
+  exports = {},
+  apiUrl = 'https://api.geoloqi.com',
+  receiverPath = '/js/',
+  receiverUrl = apiUrl + receiverPath + 'receiver.html',
+  oauthUrl = 'https://geoloqi.com',
+  oauthPath = '/oauth/authorize',
+  fullOauthUrl = oauthUrl + oauthPath,
+  iframe = null,
+  cookieName = '_geoloqi_auth',
+  config = {},
+  auth = null,
+  util = {},
+  onAuthorize = null,
+  onOAuthError = null;
 
   var socket = new easyXDM.Socket({
     remote: receiverUrl,
@@ -160,6 +161,10 @@ var geoloqi = (function() {
 
     if (!logged_in()) {
       throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
+    }
+
+    if(method == 'POST' && typeof(args) === 'string') {
+      args = util.objectify(args);
     }
 
     message = {'method': method,
