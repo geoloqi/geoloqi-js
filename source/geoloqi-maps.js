@@ -578,36 +578,40 @@ geoloqi.maps = (function() {
       this.style = exports.styles[this.options.style];
       this.infoOptions = util.merge(util.merge(defaults.info, this.style.info), opts);
 
-      this.hideInfo = function() {
-        this.opened = false;
-        this.info.close();
-        google.maps.event.trigger(this.marker, "close");
+      this.hide = function() {
+        this.infoVisible = false;
+        this.info.hide();
         return this;
       };
 
-      this.showInfo = function() {
-        this.opened = true;
-        this.delayedInfobox = true;
-        this.info.open(defaults.map, this.marker);
-        google.maps.event.trigger(this.marker, "open");
+      this.show = function() {
+        this.infoVisible = true;
+        this.info.show(defaults.map, this.marker);
         return this;
       };
 
       this.open = function() {
-        this.showInfo();
+        this.opened = true;
+        this.infoVisible = true;
+        this.delayedInfobox = true;
+        this.info.open(defaults.map, this.marker);
+        google.maps.event.trigger(this.marker, "open");
         return this;
       }
 
       this.close = function() {
-        this.hideInfo();
+        this.opened = false;
+        this.infoVisible = false;
+        this.info.close();
+        google.maps.event.trigger(this.marker, "close");
         return this;
       }
 
       this.toggleInfo = function() {
-        if(this.opened) {
-          this.hideInfo();
+        if(this.infoVisible) {
+          this.hide();
         } else {
-          this.showInfo();
+          this.show();
         }
         return this;
       };
@@ -668,7 +672,11 @@ geoloqi.maps = (function() {
           this.isClickable = true;
           this.marker.setClickable(true);
           this.clickEvent = google.maps.event.addListener(this.marker, "click", function(event) {
-            self.toggleInfo();
+            if(!self.opened){
+              self.open();
+            } else {
+              self.close();
+            }
           });
         } else {
           this.isClickable = false;
@@ -679,24 +687,21 @@ geoloqi.maps = (function() {
         };
 
         google.maps.event.addListener(this.marker, "dragstart", function(event) {
-          //self.hideInfo();
-          //self.info.hide();
+          self.hide();
         });
 
         this.delayedInfobox = false;
 
         if(self.options.autopan){
           google.maps.event.addListener(defaults.map, 'idle', function(event){
-            if(!self.opened && self.options.openAfterDrag && self.delayedInfobox){
-              //self.showInfo();
-              //self.info.show();
+            if(!self.infoVisible && self.options.openAfterDrag && self.delayedInfobox){
+              self.show();
             }
           });
         } else {
           google.maps.event.addListener(this.marker, "dragend", function(event) {
-            if(!self.opened){
-              //self.showInfo();
-              //self.info.show();
+            if(!self.infoVisible){
+              self.show();
             }
           });
         }
@@ -714,7 +719,7 @@ geoloqi.maps = (function() {
         });
 
         if(this.opened){
-          self.showInfo();
+          self.open();
         };
 
       };
@@ -741,13 +746,13 @@ geoloqi.maps = (function() {
 
         google.maps.event.addListener(this.handle, "dragstart", function(event) {
           if(self.opened && self.options.openAfterDrag){
-            self.hideInfo();
+            self.close();
           }
         });
 
         google.maps.event.addListener(this.handle, "dragend", function(event) {
           if(!self.opened && self.options.openAfterDrag){
-            self.showInfo();
+            self.open();
           }
         });
 
