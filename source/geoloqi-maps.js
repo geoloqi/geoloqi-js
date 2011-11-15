@@ -121,7 +121,7 @@ geoloqi.maps = (function() {
     }
   };
 
-  //Public Helper Methods
+  //Public Helper Methods 
   exports.helpers = {};
 
   //Zoom and center map to a radius
@@ -170,6 +170,8 @@ geoloqi.maps = (function() {
       } else {
         opts.draggable = false;
       }
+      
+      this.isVisible = (typeof this.options.map == "object") ? true : false;
 
       this.events = util.merge(defaults.events, opts.events);
 
@@ -182,6 +184,15 @@ geoloqi.maps = (function() {
         mapToPan = this.getMap();
         mapToPan.panTo(this.getPosition());
         return this;
+      },
+
+      onMap: function(){
+        map = this.getMap();
+        if(typeof map == "object"){
+          return true;
+        } else {
+          return false;
+        }
       },
 
       showOnMap: function(map){
@@ -355,7 +366,7 @@ geoloqi.maps = (function() {
       this.setupCircles = function(radius, showOnMap){
         var self = this;
         radius = typeof(radius) != 'undefined' ? radius : this.radius; //default to this.radius
-        showOnMap = (typeof showOnMap != "undefined") ?  showOnMap : null;
+        showOnMap = (typeof showOnMap != "undefined") ?  showOnMap : this.onMap();
 
         this.hideCircles();
 
@@ -371,7 +382,7 @@ geoloqi.maps = (function() {
               strokeColor: this.style.circles.strokeColor,
               strokeWeight: this.style.circles.strokeWeight,
               strokeOpacity: this.style.circles.strokeOpacity,
-              map: showOnMap,
+              map: (showOnMap) ? this.getMap() : null,
               zIndex: -1
             }),
             index: i
@@ -388,7 +399,10 @@ geoloqi.maps = (function() {
         });
 
         google.maps.event.trigger(this.marker, "radius_changed");
-
+        
+        this.updateHandle();
+        this.updateLine();
+        
         return this;
       };
 
@@ -414,6 +428,8 @@ geoloqi.maps = (function() {
       }
 
       this.showHandle = function() {
+        this.updateHandle();
+        this.updateLine();
         this.line.setMap(this.getMap());
         this.handle.setMap(this.getMap());
         return this;
@@ -656,14 +672,12 @@ geoloqi.maps = (function() {
 
         if(typeof this.options.content == 'string'){
           if(this.infoOptions.useInfobox){
-            this.setInfo(new InfoBox(this.infoOptions));
+            this.setInfo(new InfoBox(this.infoOptions), this.opened);
           } else {
-            this.setInfo(new google.maps.InfoWindow(this.infoOptions));
+            this.setInfo(new google.maps.InfoWindow(this.infoOptions), this.opened);
           }
         } else if (this.options.content instanceof InfoBox || this.options.content instanceof google.maps.InfoWindow) {
-          this.setInfo(this.options.content);
-          this.infoOptions.toggleInfoOnClick = true;
-          this.opened = false;
+          this.setInfo(this.options.content, this.opened);
         } else {
           this.info = null;
         }
@@ -717,11 +731,6 @@ geoloqi.maps = (function() {
         google.maps.event.addListener(this.marker, "close", function(event){
           (typeof self.events.close == "function") ? self.events.close.apply(self, [event]) : null;
         });
-
-        if(this.opened){
-          self.open();
-        };
-
       };
 
       (init) ? this.initInfobox() : null;
