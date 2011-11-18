@@ -2,8 +2,9 @@
 <head>
   <title>Geoloqi Client Library</title>
   <script type="text/javascript" src="https://maps.google.com/maps/api/js?libraries=geometry&amp;sensor=false"></script>
-    <script type="text/javascript" src="http://google-maps-utility-library-v3.googlecode.com/svn/tags/infobox/1.1.8/src/infobox_packed.js"></script>
-    <script type="text/javascript" src="../lib/geoloqi-maps.js"></script>
+  <script type="text/javascript" src="http://google-maps-utility-library-v3.googlecode.com/svn/tags/infobox/1.1.8/src/infobox_packed.js"></script>
+  <script type="text/javascript" src="../lib/geoloqi-maps.js"></script>
+
   <script type="text/javascript">
 
     console.log("Start");
@@ -74,7 +75,7 @@
         }
       });
 
-      //geoloqi.maps.styles.setDefault('geoloqi');
+      geoloqi.maps.styles.setDefault('geoloqi');
 
       info = geoloqi.maps.InfoBox("<div class='arrow'></div><div class='content'>Multi Box</div>", "geoloqi");
 

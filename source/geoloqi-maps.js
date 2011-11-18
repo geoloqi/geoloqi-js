@@ -117,7 +117,9 @@ geoloqi.maps = (function () {
       create : null,
       show : null,
       hide : null,
-      click : null
+      click : null,
+      circlemove: null,
+      circleleave: null
     }
   };
 
@@ -171,7 +173,11 @@ geoloqi.maps = (function () {
         opts.draggable = false;
       }
       
+<<<<<<< HEAD
       this.isVisible = (typeof this.options.map === "object") ? true : false;
+=======
+      this.isVisible = (typeof this.options.map == "object") ? true : false;
+>>>>>>> f0ad3f8dcc7126150e7f103b5544f3ca6731af30
 
       this.events = util.merge(defaults.events, opts.events);
 
@@ -190,7 +196,11 @@ geoloqi.maps = (function () {
 
       onMap: function(){
         map = this.getMap();
+<<<<<<< HEAD
         if(typeof map === "object"){
+=======
+        if(typeof map == "object"){
+>>>>>>> f0ad3f8dcc7126150e7f103b5544f3ca6731af30
           return true;
         } else {
           return false;
@@ -283,6 +293,7 @@ geoloqi.maps = (function () {
 
         google.maps.event.addListener(this.marker, "dragstart", function(event){
           (typeof self.events.dragstart === "function") ? self.events.dragstart.apply(self, [event]) : null;
+
         });
 
         google.maps.event.addListener(this.marker, "drag", function(event){
@@ -368,11 +379,9 @@ geoloqi.maps = (function () {
         var self = this;
         radius = typeof(radius) !== 'undefined' ? radius : this.radius; //default to this.radius
         showOnMap = (typeof showOnMap !== "undefined") ?  showOnMap : this.onMap();
-
         this.hideCircles();
-
         this.circles = [];
-        
+
         for(var i = 0; i<this.style.circles.count; i++) {
           this.circles.push({
             circle: new google.maps.Circle({
@@ -390,7 +399,7 @@ geoloqi.maps = (function () {
           });
           this.circles[i].circle.bindTo('center', this.marker, 'position');
         }
-        
+
         google.maps.event.trigger(this.marker, "radius_changed");
         
         this.updateHandle();
@@ -420,6 +429,11 @@ geoloqi.maps = (function () {
         this.setupCircles(exports.helpers.getIdealRadiusForMap(fillPercent));
         return this;
       };
+
+      this.fitCircles = function(){
+        this.setupCircles(exports.helpers.getIdealRadiusForMap());
+        return this;
+      }
 
       this.showHandle = function() {
         this.updateHandle();
@@ -758,7 +772,6 @@ geoloqi.maps = (function () {
             self.open();
           }
         });
-
       };
 
       if(init){
@@ -776,7 +789,6 @@ geoloqi.maps = (function () {
 
   //Helper to generate styled info boxes
   exports.InfoBox = function(content, styleKey){
-
     style = (typeof styleKey === 'undefined') ? exports.styles._default : exports.styles[styleKey];
     options = util.merge(defaults.info, style.info);
     options.content = content;
