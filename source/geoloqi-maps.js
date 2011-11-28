@@ -173,12 +173,7 @@ geoloqi.maps = (function () {
         opts.draggable = false;
       }
       
-<<<<<<< HEAD
       this.isVisible = (typeof this.options.map === "object") ? true : false;
-=======
-      this.isVisible = (typeof this.options.map == "object") ? true : false;
->>>>>>> f0ad3f8dcc7126150e7f103b5544f3ca6731af30
-
       this.events = util.merge(defaults.events, opts.events);
 
       if(init){
@@ -196,11 +191,7 @@ geoloqi.maps = (function () {
 
       onMap: function(){
         map = this.getMap();
-<<<<<<< HEAD
         if(typeof map === "object"){
-=======
-        if(typeof map == "object"){
->>>>>>> f0ad3f8dcc7126150e7f103b5544f3ca6731af30
           return true;
         } else {
           return false;
