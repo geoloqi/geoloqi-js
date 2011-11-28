@@ -39,7 +39,7 @@
               if (xhr.status === 200) {
                 payload.response = xhr.responseText;
               } else {
-                payload.error = {status: xhr.status, message: xhr.responseText};
+                payload.error = xhr.responseText;
               }
 
               callback(payload);

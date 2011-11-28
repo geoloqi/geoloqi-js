@@ -44,7 +44,11 @@ var geoloqi = (function () {
         }
 
         if (typeof payload.error === 'string') {
-          payload.error = JSON.parse(payload.error);
+          if (payload.error[0] == "{") {
+            payload.error = JSON.parse(payload.error);
+          } else {
+            payload.error = {error_code: 500, error: "unknown_error", error_description: payload.error};
+          }
         }
         
         anonymousCallbacks[payload.callbackId](payload.response, payload.error);
