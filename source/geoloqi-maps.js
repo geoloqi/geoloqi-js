@@ -416,11 +416,6 @@ geoloqi.maps = (function () {
         return this;
       };
 
-      this.fitCircles = function(){
-        this.setupCircles(exports.helpers.getIdealRadiusForMap());
-        return this;
-      }
-
       this.showHandle = function() {
         this.updateHandle();
         this.updateLine();
@@ -428,6 +423,11 @@ geoloqi.maps = (function () {
         this.handle.setMap(this.getMap());
         return this;
       };
+
+      this.fitCircles = function(){
+        this.setupCircles(exports.helpers.getIdealRadiusForMap());
+        return this;
+      }
 
       this.lockPin = function(){
         if(!this.isLocked){
@@ -758,6 +758,7 @@ geoloqi.maps = (function () {
             self.open();
           }
         });
+
       };
 
       if(init){
