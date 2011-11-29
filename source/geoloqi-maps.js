@@ -776,7 +776,7 @@ geoloqi.maps = (function () {
 
   //Helper to generate styled info boxes
   exports.InfoBox = function(content, styleKey){
-    style = (typeof styleKey === 'undefined') ? exports.styles._default : exports.styles[styleKey];
+    style = (typeof styleKey === 'undefined') ? exports.styles['_default'] : exports.styles[styleKey];
     options = util.merge(defaults.info, style.info);
     options.content = content;
 
