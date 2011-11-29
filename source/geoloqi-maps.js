@@ -117,6 +117,7 @@ geoloqi.maps = (function () {
       create : null,
       show : null,
       hide : null,
+      click : null
     }
   };
 
@@ -137,6 +138,7 @@ geoloqi.maps = (function () {
   //Returns the ideal radius for a map
   exports.helpers.getIdealRadiusForMap = function (fillPercent) {
     fraction = (typeof fillPercent !== 'undefined') ? 100 / fillPercent : 4;
+    var bounds = exports.getMap().getBounds(),
         ne = bounds.getNorthEast(),
         sw = bounds.getSouthWest(),
         se = new google.maps.LatLng(sw.lat(), ne.lng());
@@ -170,6 +172,7 @@ geoloqi.maps = (function () {
       }
       
       this.isVisible = (typeof this.options.map === "object") ? true : false;
+
       this.events = util.merge(defaults.events, opts.events);
 
       if(init){
@@ -279,7 +282,6 @@ geoloqi.maps = (function () {
 
         google.maps.event.addListener(this.marker, "dragstart", function(event){
           (typeof self.events.dragstart === "function") ? self.events.dragstart.apply(self, [event]) : null;
-
         });
 
         google.maps.event.addListener(this.marker, "drag", function(event){
@@ -365,9 +367,11 @@ geoloqi.maps = (function () {
         var self = this;
         radius = typeof(radius) !== 'undefined' ? radius : this.radius; //default to this.radius
         showOnMap = (typeof showOnMap !== "undefined") ?  showOnMap : this.onMap();
-        this.hideCircles();
-        this.circles = [];
 
+        this.hideCircles();
+
+        this.circles = [];
+        
         for(var i = 0; i<this.style.circles.count; i++) {
           this.circles.push({
             circle: new google.maps.Circle({
@@ -385,7 +389,7 @@ geoloqi.maps = (function () {
           });
           this.circles[i].circle.bindTo('center', this.marker, 'position');
         }
-
+        
         google.maps.event.trigger(this.marker, "radius_changed");
         
         this.updateHandle();
