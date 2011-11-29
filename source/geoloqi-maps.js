@@ -118,8 +118,6 @@ geoloqi.maps = (function () {
       show : null,
       hide : null,
       click : null,
-      circlemove: null,
-      circleleave: null
     }
   };
 
@@ -199,7 +197,6 @@ geoloqi.maps = (function () {
       },
 
       showOnMap: function(map){
-        map = (typeof map !== "undefined") ? map : defaults.map;
         this.marker.setVisible(true);
         this.marker.setMap(map);
         google.maps.event.trigger(this.marker, "show");
