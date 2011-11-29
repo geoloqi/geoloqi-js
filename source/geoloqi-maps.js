@@ -186,8 +186,7 @@ geoloqi.maps = (function () {
       },
 
       onMap: function(){
-        map = this.getMap();
-        if(typeof map === "object"){
+        if(typeof this.getMap() === "object"){
           return true;
         } else {
           return false;
