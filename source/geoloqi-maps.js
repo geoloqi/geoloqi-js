@@ -117,7 +117,6 @@ geoloqi.maps = (function () {
       create : null,
       show : null,
       hide : null,
-      click : null,
     }
   };
 
