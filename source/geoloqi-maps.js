@@ -194,8 +194,9 @@ geoloqi.maps = (function () {
       },
 
       showOnMap: function(map){
+        theMap = (typeof map !== "undefined") ? map : defaults.map;
         this.marker.setVisible(true);
-        this.marker.setMap(map);
+        this.marker.setMap(theMap);
         google.maps.event.trigger(this.marker, "show");
         return this;
       },
