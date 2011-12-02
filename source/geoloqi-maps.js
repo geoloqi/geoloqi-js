@@ -678,10 +678,10 @@ geoloqi.maps = (function () {
           this.isClickable = true;
           this.marker.setClickable(true);
           this.clickEvent = google.maps.event.addListener(this.marker, "click", function(event) {
-            if(!self.opened){
-              self.open();
-            } else {
+            if(self.opened){
               self.close();
+            } else {
+              self.open();
             }
           });
         } else {
