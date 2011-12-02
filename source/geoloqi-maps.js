@@ -138,7 +138,7 @@ geoloqi.maps = (function () {
   //Returns the ideal radius for a map
   exports.helpers.getIdealRadiusForMap = function (fillPercent) {
     fraction = (typeof fillPercent !== 'undefined') ? 100 / fillPercent : 4;
-    bounds = exports.getMap().getBounds();
+    var bounds = exports.getMap().getBounds();
     ne = bounds.getNorthEast();
     sw = bounds.getSouthWest();
     se = new google.maps.LatLng(sw.lat(), ne.lng());
