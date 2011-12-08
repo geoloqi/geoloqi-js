@@ -4,7 +4,7 @@
     <script type="text/javascript" src="http://api.geoloqi.com/js/geoloqi.min.js"></script>
     <script type="text/javascript">
       window.onload = function () {
-        geoloqi.init({'client_id': '665a737a5abe1fac5cced7149f03a62b'});
+        geoloqi.init({'client_id': 'YOUR OAUTH2 CLIENT KEY GOES HERE. Get yours at https://developers.geoloqi.com (in the "Getting Started" section).'});
 
         geoloqi.onAuthorize = function() {
           console.log('Authorized!');
@@ -22,7 +22,7 @@
       }
 
       function changeProfileWebsite() {
-        geoloqi.post('account/profile', {'website':'http://limpbizkithottubs.com'}, function(result, error) {
+        geoloqi.post('account/profile', {'website':'http://newcoolwebsite.com'}, function(result, error) {
           console.log(result);
         });
       }
