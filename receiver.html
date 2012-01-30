@@ -36,7 +36,7 @@
 
             if (4 === xhr.readyState) {
 
-              if (xhr.status < 400) {
+              if (xhr.status < 400 || xhr.status == 409) {
                 payload.response = xhr.responseText;
               } else {
                 payload.error = xhr.responseText;
