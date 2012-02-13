@@ -75,10 +75,14 @@ var geoloqi = (function () {
   exports.init = init;
   exports.auth = auth;
 
-  function processAuth(fragment) {
-    var newAuth = util.objectify(fragment);
+  function processAuth(fragment_or_object) {
+    if (typeof fragment_or_object === 'string') {
+      var newAuth = util.objectify(fragment_or_object);
+    } else {
+      var newAuth = fragment_or_object;
+    }
 
-    if (newAuth.access_token && newAuth.expires_in) {
+    if (newAuth.access_token) {
       exports.auth = newAuth;
       util.cookie.set(JSON.stringify(newAuth), newAuth.expires_in);
 
@@ -147,34 +151,54 @@ var geoloqi = (function () {
 
   function get(path, args, callback) {
     if(arguments.length == 3) {
-      execute('GET', path, args, callback);
+      executeWithAccessToken('GET', path, args, callback);
     } else if(arguments.length == 2) {
-      execute('GET', arguments[0], {}, arguments[1]);
+      executeWithAccessToken('GET', arguments[0], {}, arguments[1]);
     }
   }
   exports.get = get;
 
   function post(path, args, callback) {
-    execute('POST', path, args, callback);
+    executeWithAccessToken('POST', path, args, callback);
   }
   exports.post = post;
+
+
+  function login(args) {
+    execute('POST', 'oauth/token', {
+      'grant_type' : 'password',
+      'client_id' : self.config.client_id,
+      'username' : args.username,
+      'password' : args.password
+    }, processLoginCallback);
+  }
+  exports.login = login;
+
+  function processLoginCallback(response, error) {
+    processAuth(response);
+  }
+
+  function executeWithAccessToken(method, path, args, callback) {
+    if (!logged_in()) {
+      throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
+    }
+    execute(method, path, args, callback);
+  }
 
   function execute(method, path, args, callback) {
     var callbackId = util.guid(),
       message = {};
 
-    if (!logged_in()) {
-      throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
-    }
-
     if(method == 'POST' && typeof(args) === 'string') {
       args = util.objectify(args);
     }
 
+    var access_token = (exports.auth !== null) ? exports.auth.access_token : '';
+
     message = {'method': method,
                'path': path,
                'args': args,
-               'accessToken': exports.auth.access_token,
+               'accessToken': access_token,
                'callbackId': callbackId,
                'version': version};
 		anonymousCallbacks[callbackId] = callback;

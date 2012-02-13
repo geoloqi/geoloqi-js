@@ -26,6 +26,13 @@
           console.log(result);
         });
       }
+
+      function login(username, password) {
+        geoloqi.login({
+          username: username,
+          password: password,
+        });
+      }
     </script>
     <title>Geoloqi Client JS Test</title>
   </head>
@@ -41,6 +48,8 @@
     <a href="#" onclick="geoloqi.expire(); return false">Logout</a>
     <br>
     <a href="#" onclick="console.log(geoloqi.logged_in()); return false">Is Logged In?</a>
+    <br>
+    <a href="#" onclick="login('USERNAME', 'PASSWORD'); return false">Login With Password</a>
     <br><br>
   </body>
 </html>
