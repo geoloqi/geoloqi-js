@@ -1,6 +1,6 @@
 
 var geoloqi = (function () {
-  var version = '1.0.6',
+  var version = '1.0.7',
   anonymousCallbacks = {},
   self = this,
   exports = {},
@@ -87,7 +87,7 @@ var geoloqi = (function () {
       util.cookie.set(JSON.stringify(newAuth), newAuth.expires_in);
 
       if(exports.onAuthorize !== null) {
-        exports.onAuthorize();
+        exports.onAuthorize(newAuth);
       }
     }
   }
