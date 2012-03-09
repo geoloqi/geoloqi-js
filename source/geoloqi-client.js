@@ -11,14 +11,15 @@ var geoloqi = (function () {
   oauthPath = '/oauth/authorize',
   fullOauthUrl = oauthUrl + oauthPath,
   iframe = null,
+  _geoloqiEasyXDM = easyXDM.noConflict(_geoloqiEasyXDM),
   cookieName = '_geoloqi_auth',
   config = {},
   auth = null,
   util = {},
   onAuthorize = null,
   onOAuthError = null;
-
-  var socket = new easyXDM.Socket({
+  
+  var socket = new _geoloqiEasyXDM.Socket({
     remote: receiverUrl,
     onMessage: function(message, origin){
       if(origin != apiUrl && origin != oauthUrl) {
