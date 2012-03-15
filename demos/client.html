@@ -33,6 +33,26 @@
           password: password,
         });
       }
+
+      function startWatcher(){
+        watcher = new geoloqi.watchLocation({
+          success: function(position){
+            console.log(position);
+          },
+          error: function(error){
+            console.log(error);
+          }
+        });
+      }
+      
+      function updatePostionOnce(){
+        geoloqi.updateLocation({
+          success: function(position){
+            console.log(position);
+          },
+          error: function(error){
+            console.log(error);
+          }
     </script>
     <title>Geoloqi Client JS Test</title>
   </head>
@@ -50,6 +70,5 @@
     <a href="#" onclick="console.log(geoloqi.logged_in()); return false">Is Logged In?</a>
     <br>
     <a href="#" onclick="login('USERNAME', 'PASSWORD'); return false">Login With Password</a>
-    <br><br>
   </body>
 </html>
