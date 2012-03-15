@@ -289,9 +289,8 @@ geoloqi.maps = (function () {
 
         google.maps.event.addListener(this.marker, "dragend", function(event) {
           if(self.options.autopan){
-            map.panTo(self.getPosition());
+            self.getMap().panTo(self.getPosition());
           }
-
           (self.events.dragend) ? self.events.dragend.apply(self, [event]) : null;
         });
 
@@ -700,25 +699,17 @@ geoloqi.maps = (function () {
           }
         }
 
+        this.delayedInfobox = false;
+        
         google.maps.event.addListener(this.marker, "dragstart", function(event) {
           self.hide();
         });
 
-        this.delayedInfobox = false;
-
-        if(self.options.autopan){
-          google.maps.event.addListener(defaults.map, 'idle', function(event){
-            if(!self.infoVisible && self.options.openAfterDrag && self.delayedInfobox){
-              self.show();
-            }
-          });
-        } else {
-          google.maps.event.addListener(this.marker, "dragend", function(event) {
-            if(!self.infoVisible){
-              self.show();
-            }
-          });
-        }
+        google.maps.event.addListener(this.marker, "dragend", function(event) {
+          if(!self.infoVisible){
+            self.show();
+          }
+        });
 
         google.maps.event.addListener(this.marker, "hide", function(event) {
           self.info.close(); 
