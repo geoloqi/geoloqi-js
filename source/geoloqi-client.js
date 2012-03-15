@@ -1,5 +1,6 @@
 var geoloqi = (function () {
-  var version = '1.0.7',
+  var version = '1.0.8',
+  build_version = '',
   anonymousCallbacks = {},
   self = this,
   exports = {},
@@ -205,12 +206,17 @@ var geoloqi = (function () {
 
     var access_token = (exports.auth !== null) ? exports.auth.access_token : '';
 
-    message = {'method': method,
-               'path': path,
-               'args': args,
-               'accessToken': access_token,
-               'callbackId': callbackId,
-               'version': version};
+    message = {
+      'method': method,
+      'path': path,
+      'args': args,
+      'accessToken': access_token,
+      'callbackId': callbackId,
+      'sdkVersion': version,
+      'sdkBuild': build_version,
+      'packageName': config.package_name,
+      'packageVersion': config.package_version
+    };
     anonymousCallbacks[callbackId] = callback;
     socket.postMessage(JSON.stringify(message));
   }
@@ -263,12 +269,12 @@ var geoloqi = (function () {
     try {
       localStorage.setItem(mod, mod);
       localStorage.removeItem(mod);
-      localStorage = true;
+      localStorageTest = true;
     } catch(e) {
-      localStorage = false;
+      localStorageTest = false;
     }
 
-    persist = (localStorage) ? "localStorage" : "cookie";
+    persist = (localStorageTest) ? "localStorage" : "cookie";
 
     create = function(string){  
       util[persist].set(string);
@@ -346,128 +352,7 @@ var geoloqi = (function () {
     return exports;
   }());
   
-  /*
-  Utilities for browser detection
-  -------------------------------
-  */
-  
-  util.browser = {
-    init: function () {
-      this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
-      this.version = this.searchVersion(navigator.userAgent)
-        || this.searchVersion(navigator.appVersion)
-        || "an unknown version";
-      this.OS = this.searchString(this.dataOS) || "an unknown OS";
-    },
-    searchString: function (data) {
-      for (var i=0;i<data.length;i++) {
-        var dataString = data[i].string;
-        var dataProp = data[i].prop;
-        this.versionSearchString = data[i].versionSearch || data[i].identity;
-        if (dataString) {
-          if (dataString.indexOf(data[i].subString) != -1)
-            return data[i].identity;
-        }
-        else if (dataProp)
-          return data[i].identity;
-      }
-    },
-    searchVersion: function (dataString) {
-      var index = dataString.indexOf(this.versionSearchString);
-      if (index == -1) return;
-      return parseFloat(dataString.substring(index+this.versionSearchString.length+1));
-    },
-    dataBrowser: [
-      {
-        string: navigator.userAgent,
-        subString: "Chrome",
-        identity: "Chrome"
-      },
-      {   string: navigator.userAgent,
-        subString: "OmniWeb",
-        versionSearch: "OmniWeb/",
-        identity: "OmniWeb"
-      },
-      {
-        string: navigator.vendor,
-        subString: "Apple",
-        identity: "Safari",
-        versionSearch: "Version"
-      },
-      {
-        prop: window.opera,
-        identity: "Opera",
-        versionSearch: "Version"
-      },
-      {
-        string: navigator.vendor,
-        subString: "iCab",
-        identity: "iCab"
-      },
-      {
-        string: navigator.vendor,
-        subString: "KDE",
-        identity: "Konqueror"
-      },
-      {
-        string: navigator.userAgent,
-        subString: "Firefox",
-        identity: "Firefox"
-      },
-      {
-        string: navigator.vendor,
-        subString: "Camino",
-        identity: "Camino"
-      },
-      {   // for newer Netscapes (6+)
-        string: navigator.userAgent,
-        subString: "Netscape",
-        identity: "Netscape"
-      },
-      {
-        string: navigator.userAgent,
-        subString: "MSIE",
-        identity: "Explorer",
-        versionSearch: "MSIE"
-      },
-      {
-        string: navigator.userAgent,
-        subString: "Gecko",
-        identity: "Mozilla",
-        versionSearch: "rv"
-      },
-      {     // for older Netscapes (4-)
-        string: navigator.userAgent,
-        subString: "Mozilla",
-        identity: "Netscape",
-        versionSearch: "Mozilla"
-      }
-    ],
-    dataOS : [
-      {
-        string: navigator.platform,
-        subString: "Win",
-        identity: "Windows"
-      },
-      {
-        string: navigator.platform,
-        subString: "Mac",
-        identity: "Mac"
-      },
-      {
-           string: navigator.userAgent,
-           subString: "iPhone",
-           identity: "iPhone/iPod"
-        },
-      {
-        string: navigator.platform,
-        subString: "Linux",
-        identity: "Linux"
-      }
-    ]
-
-  };
-
+ 
   /*
   Utilities for working with localStorage
   ---------------------------------------
@@ -563,14 +448,6 @@ var geoloqi = (function () {
     success: null,
     error: null,
     context: null,
-    client: {
-      platform: util.browser.OS,
-      browser: util.browser.browser,
-      version: util.browser.version,
-      browser_version: util.browser.browser + " " +util.browser.version,
-      name: null,
-      version: null
-    },
     raw: null
   };
 
@@ -589,14 +466,6 @@ var geoloqi = (function () {
         }
         type: "point"
       },
-      client: {
-        platform: this.settings.browser.OS,
-        browser: this.settings.browser.browser,
-        version: this.settings.browser.version,
-        browser_version: this.settings.browser.browser + " " +this.settings.browser.version,
-        name: this.settings.client.name,
-        version: this.settings.client.version
-      }
       raw: this.settings.raw,
     });
     */
@@ -608,7 +477,7 @@ var geoloqi = (function () {
   watchLocation = function (opts) {
     var object = function () {
       var self = this;
-      this.settings = util.mergeDeep(pointDefaults, opts);
+      this.settings = util.merge(pointDefaults, opts);
       this.settings.context = (!this.settings.context) ? this : this.settings.context;
 
       this.success = function(position){
@@ -646,7 +515,7 @@ var geoloqi = (function () {
   exports.watchLocation = watchLocation;
 
   updateLocation = function(opts){
-    settings = util.mergeDeep(pointDefaults, opts);
+    settings = util.merge(pointDefaults, opts);
     function success(position){
       sendPoint(position, settings);
       if(typeof settings.success === "function"){

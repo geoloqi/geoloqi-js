@@ -3,10 +3,12 @@
   <head>
     <script type="text/javascript" src="source/easyXDM/easyXDM.min.js"></script>
     <script type="text/javascript" src="source/easyXDM/json2.min.js"></script>
+    <script type="text/javascript" src="source/userAgent/userAgent.js"></script>
+    
     <script type="text/javascript">
       var geoloqiReceiver = (function() {
         var apiUrl = 'https://api.geoloqi.com/1/';
-        var version = '1.0.0'
+        var version = '1.0.1'
         var exports = {};
 
         var socket = new easyXDM.Socket({
@@ -22,11 +24,21 @@
         });
 
         function execute(o, callback) {
-          var headers = {'Content-Type': 'application/json',
-                         'X-Geoloqi-Version': 'geoloqi-client-js '+o.version+' receiver '+version,
-                         'Accept': 'application/json'},
-              xhr = util.getXHR(),
-              payload = {};
+          var ua = userAgent.parse(navigator.userAgent),
+          headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+            'X-LQ-Device-OS': ua.os,
+            'X-LQ-SDK-Version': o.sdkVersion,
+            'X-LQ-SDK-Build': o.buildVersion,
+            'X-LQ-JS-Receiver-Version': version,
+            'X-LQ-Browser-Family': ua.family,
+            'X-LQ-Browser-Version': ua.major,
+            'X-LQ-Package-Name': o.packageName,
+            'X-LQ-Package-Version': o.packageVersion,
+          },
+          xhr = util.getXHR(),
+          payload = {};
 
           if(typeof(o.accessToken) === 'string') {
             headers['Authorization'] = 'OAuth '+o.accessToken;
