@@ -264,15 +264,16 @@ var geoloqi = (function () {
     var exports = {}
 
     try {
-      localStorage.setItem(mod, mod);
-      localStorage.removeItem(mod);
+      localStorage.setItem("mod", "mod");
+      localStorage.removeItem("mod");
       localStorageTest = true;
     } catch(e) {
       localStorageTest = false;
     }
 
-    persist = (localStorageTest) ? "localStorage" : "cookie";
-
+    featureLevel = (localStorageTest) ? "localStorage" : "cookie";
+    persist = (config.persist) ? config.persist : featureLevel;
+    
     create = function(string){  
       util[persist].set(string);
     };
@@ -325,7 +326,7 @@ var geoloqi = (function () {
         var expires = "; expires="+date.toGMTString();
       }
       else var expires = "";
-      document.cookie = cookieName + "=" + value + expires + "; path=/";
+      document.cookie = cookieName + "=" + JSON.stringify(value) + expires + "; path=/";
     }
     exports.set = set;
 
@@ -337,6 +338,7 @@ var geoloqi = (function () {
         while (c.charAt(0)==' ') c = c.substring(1,c.length);
         if (c.indexOf(nameEQ) == 0) return JSON.parse(c.substring(nameEQ.length,c.length));
       }
+
       return null;
     }
     exports.get = get;
@@ -449,23 +451,22 @@ var geoloqi = (function () {
   };
 
   sendPoint = function(position, settings){
-    /*
+    
     geoloqi.post("location/update", {
       date: util.date.toISO8601(new Date(position.timestamp)),
       location: { 
         position: {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-          speed: (position.coords.speed) ? position.coords.speed || 0,
-          altitude: (position.coords.altitude) ? position.coords.altitude || 0,
+          speed: (position.coords.speed) ? position.coords.speed : 0,
+          altitude: (position.coords.altitude) ? position.coords.altitude : 0,
           horizontal_accuracy: position.coords.accuracy,
-          vertical_accuracy: (position.coords.altitudeAccuracy) ? position.coords.altitudeAccuracy || 0
-        }
+          vertical_accuracy: (position.coords.altitudeAccuracy) ? position.coords.altitudeAccuracy : 0
+        },
         type: "point"
       },
       raw: this.settings.raw,
     });
-    */
     if(typeof settings.success === "function"){
       settings.success.apply(settings.context, [position]);
     }
