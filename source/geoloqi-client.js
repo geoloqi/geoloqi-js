@@ -65,9 +65,6 @@ var geoloqi = (function () {
   exports.onLoginError = onLoginError;
 
   function init(config) {
-    
-    util.browser.init();
-    
     var fragment = document.location.hash.substring(1),
         newAuth = {};
 
@@ -214,8 +211,8 @@ var geoloqi = (function () {
       'callbackId': callbackId,
       'sdkVersion': version,
       'sdkBuild': build_version,
-      'packageName': config.package_name,
-      'packageVersion': config.package_version
+      'packageName': (config.package_name) ? config.package_name : "",
+      'packageVersion': (config.package_version) ? config.package_version : ""
     };
     anonymousCallbacks[callbackId] = callback;
     socket.postMessage(JSON.stringify(message));
@@ -506,10 +503,13 @@ var geoloqi = (function () {
         });  
       }
     };
-    if(logged_in && navigator.geolocation){
+    
+    if(logged_in() && navigator.geolocation){
       return new object();
-    } else {
-      return false;
+    } else if(!navigator.geolocation) {
+      throw "Client does not support HTML5 Geolocation. This function is unavailable";
+    } else if(!logged_in()) {
+      throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
     };
   };
   exports.watchLocation = watchLocation;
@@ -528,11 +528,15 @@ var geoloqi = (function () {
         settings.error.apply(settings.context, [position]);
       }
     };
-    
-    if(logged_in && navigator.geolocation){
+
+    if(logged_in() && navigator.geolocation){
       navigator.geolocation.getCurrentPosition(success, error, {
         enableHighAccuracy: true
       });
+    } else if(!navigator.geolocation) {
+      throw "Client does not support HTML5 Geolocation. This function is unavailable";
+    } else if(!logged_in()) {
+      throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
     };
   };
   exports.updateLocation = updateLocation;
