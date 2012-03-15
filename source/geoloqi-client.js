@@ -273,7 +273,7 @@ var geoloqi = (function () {
 
     featureLevel = (localStorageTest) ? "localStorage" : "cookie";
     persist = (config.persist) ? config.persist : featureLevel;
-    
+
     create = function(string){  
       util[persist].set(string);
     };
@@ -452,7 +452,7 @@ var geoloqi = (function () {
 
   sendPoint = function(position, settings){
     
-    geoloqi.post("location/update", {
+    geoloqi.post("location/update", [{
       date: util.date.toISO8601(new Date(position.timestamp)),
       location: { 
         position: {
@@ -466,7 +466,7 @@ var geoloqi = (function () {
         type: "point"
       },
       raw: this.settings.raw,
-    });
+    }]);
     if(typeof settings.success === "function"){
       settings.success.apply(settings.context, [position]);
     }

@@ -231,11 +231,12 @@ describe("Geoloqi HTML5 Integration", function(){
 
     waitsFor(function(){
       return errorCallback.callCount || successCallback.callCount;
-    }, "watcher callback", 1000);
+    }, "location watcher callbacks", 3000);
 
     runs(function(){
       if(successCallback.callCount){
         expect(geoloqi.post).toHaveBeenCalled();
+        expect(successCallback).toHaveBeenCalled();
         expect(geoloqi.post.mostRecentCall.args[0]).toEqual("location/update");
         expect(typeof successCallback.mostRecentCall.args[0].coords).toEqual("object");
         expect(typeof successCallback.mostRecentCall.args[0].timestamp).toEqual("number");
@@ -265,11 +266,12 @@ describe("Geoloqi HTML5 Integration", function(){
 
     waitsFor(function(){
       return errorCallback.callCount || successCallback.callCount;
-    }, "watcher callback", 1000);
+    }, "location updater callbacks", 3000);
 
     runs(function(){
       if(successCallback.callCount){
         expect(geoloqi.post).toHaveBeenCalled();
+        expect(successCallback).toHaveBeenCalled();
         expect(geoloqi.post.mostRecentCall.args[0]).toEqual("location/update");
         expect(typeof successCallback.mostRecentCall.args[0].coords).toEqual("object");
         expect(typeof successCallback.mostRecentCall.args[0].timestamp).toEqual("number");
