@@ -1,10 +1,8 @@
-beforeEach(function(){
-  geoloqi.init({'client_id': '4cd87809ded4d0e8d1a592142bea6f31'});
-});
 
 describe("Geoloqi Client Authentication", function() {
 
   beforeEach(function(){
+    geoloqi.init({'client_id': '4cd87809ded4d0e8d1a592142bea6f31'});
     geoloqi.expire();
   });
 
@@ -19,7 +17,7 @@ describe("Geoloqi Client Authentication", function() {
     
     waitsFor(function(){
       return geoloqi.logged_in();
-    }, "authentication with username and password timeout", 3000);
+    }, "authentication with username and password timeout", 1000);
     
     runs(function(){
       expect(typeof geoloqi.auth.access_token).toEqual("string");
@@ -38,7 +36,7 @@ describe("Geoloqi Client Authentication", function() {
 
     waitsFor(function(){
       return geoloqi.onAuthorize.callCount;
-    }, "authentication with username and password timeout", 3000);
+    }, "authentication with username and password timeout", 1000);
 
     runs(function(){
       expect(geoloqi.onAuthorize).toHaveBeenCalled();
@@ -58,7 +56,7 @@ describe("Geoloqi Client Authentication", function() {
 
     waitsFor(function(){
       return geoloqi.onLoginError.callCount;
-    }, "authentication with username and password timeout", 3000);
+    }, "authentication with username and password timeout", 1000);
 
     runs(function(){
       expect(geoloqi.onLoginError).toHaveBeenCalledWith({"error":"invalid_grant","error_description":"Invalid username or password"});
@@ -78,7 +76,7 @@ describe("Geoloqi Client Authentication", function() {
 
     waitsFor(function(){
       return geoloqi.onAuthorize.callCount;
-    }, "authentication with username and password timeout", 3000);
+    }, "authentication with username and password timeout", 1000);
 
     runs(function(){
       expect(geoloqi.auth && geoloqi.auth.access_token).toBeTruthy();
@@ -101,7 +99,7 @@ describe("Geoloqi Client Authentication", function() {
 
     waitsFor(function(){
       return geoloqi.auth;
-    }, "authentication with username and password timeout", 3000);
+    }, "authentication with username and password timeout", 1000);
 
     runs(function(){
       geoloqi.expire();
@@ -117,23 +115,25 @@ describe("Geoloqi Client Authentication", function() {
 describe("Geoloqi API Client", function() {
   
   beforeEach(function(){
-    if(!geoloqi.logged_in){
+    geoloqi.init({'client_id': '4cd87809ded4d0e8d1a592142bea6f31'});
+    
+    if(!geoloqi.logged_in()){
       runs(function(){
         geoloqi.login({
           username: 'spampk',
           password: '123454321'
         });
       });
-    }
-
+    };
+    
     waitsFor(function(){
-      return geoloqi.logged_in;
-    }, "geoloqi.get() timeout", 3000);
+      return geoloqi.logged_in();
+    }, "pre-spec login", 1000);
   });
 
   it("should get the users profile and execute a callback function", function(){
     
-    callback = jasmine.createSpy();
+    var callback = jasmine.createSpy();
     
     runs(function(){
       geoloqi.get("account/profile", {}, callback);
@@ -141,7 +141,7 @@ describe("Geoloqi API Client", function() {
 
     waitsFor(function(){
       return callback.callCount;
-    }, "geoloqi.get() timeout", 3000);
+    }, "geoloqi.get()", 2000);
 
     runs(function(){
       expect(callback).toHaveBeenCalled();
@@ -151,7 +151,7 @@ describe("Geoloqi API Client", function() {
 
   });
 
-  it("should run the callback with an error object if the server returns an error", function(){
+  it("should run the callback with an error object if the get() request returns an error", function(){
     
     callback = jasmine.createSpy();
     
@@ -161,7 +161,7 @@ describe("Geoloqi API Client", function() {
 
     waitsFor(function(){
       return callback.callCount;
-    }, "geoloqi.get() timeout", 3000);
+    }, "geoloqi.get() with an error", 1000);
 
     runs(function(){
       expect(callback).toHaveBeenCalled();
@@ -180,7 +180,7 @@ describe("Geoloqi API Client", function() {
 
     waitsFor(function(){
       return callback.callCount;
-    }, "geoloqi.post() timeout", 3000);
+    }, "geoloqi.post()", 1000);
 
     runs(function(){
       expect(callback).toHaveBeenCalled();
@@ -188,5 +188,96 @@ describe("Geoloqi API Client", function() {
       expect(callback.mostRecentCall.args[1]).toBeUndefined();
     });
 
+  });
+
+  it("should run the callback with an error object if the post() request an error", function(){
+    
+    callback = jasmine.createSpy();
+    
+    runs(function(){
+      geoloqi.post("accountt/profile", {}, callback);
+    });
+
+    waitsFor(function(){
+      return callback.callCount;
+    }, "geoloqi.post() with an error", 1000);
+
+    runs(function(){
+      expect(callback).toHaveBeenCalled();
+      expect(callback.mostRecentCall.args[0]).toBeUndefined();
+      expect(typeof callback.mostRecentCall.args[1].error).toBeTruthy();  
+    });
+
+  });
+
+});
+
+describe("Geoloqi HTML5 Integration", function(){
+  it("should send a request to location update and run a callback", function(){
+
+    errorCallback = jasmine.createSpy("Watcher Error Callback");
+    successCallback = jasmine.createSpy("Watcher Success Callback");
+    
+    runs(function(){
+      spyOn(geoloqi, "post");
+    });
+
+    runs(function(){
+      watcher = new geoloqi.updateLocation({
+        success: successCallback,
+        error: errorCallback
+      });
+    });
+
+    waitsFor(function(){
+      return errorCallback.callCount || successCallback.callCount;
+    }, "watcher callback", 1000);
+
+    runs(function(){
+      if(successCallback.callCount){
+        expect(geoloqi.post).toHaveBeenCalled();
+        expect(geoloqi.post.mostRecentCall.args[0]).toEqual("location/update");
+        expect(typeof successCallback.mostRecentCall.args[0].coords).toEqual("object");
+        expect(typeof successCallback.mostRecentCall.args[0].timestamp).toEqual("number");
+        expect(errorCallback).not.toHaveBeenCalled();
+      } else if(errorCallback.callCount) {
+        expect(typeof errorCallback.mostRecentCall.args[0]).toEqual("object");
+        expect(successCallback).not.toHaveBeenCalled();
+      }
+    });
+  });
+
+  it("should monitor a users location and post updates to the server and run a callback", function(){
+    
+    errorCallback = jasmine.createSpy("Watcher Error Callback");
+    successCallback = jasmine.createSpy("Watcher Success Callback");
+    
+    runs(function(){
+      spyOn(geoloqi, "post");
+    });
+
+    runs(function(){
+      watcher = new geoloqi.watchLocation({
+        success: successCallback,
+        error: errorCallback
+      });
+    });
+
+    waitsFor(function(){
+      return errorCallback.callCount || successCallback.callCount;
+    }, "watcher callback", 1000);
+
+    runs(function(){
+      if(successCallback.callCount){
+        expect(geoloqi.post).toHaveBeenCalled();
+        expect(geoloqi.post.mostRecentCall.args[0]).toEqual("location/update");
+        expect(typeof successCallback.mostRecentCall.args[0].coords).toEqual("object");
+        expect(typeof successCallback.mostRecentCall.args[0].timestamp).toEqual("number");
+        expect(errorCallback).not.toHaveBeenCalled();
+      } else if(errorCallback.callCount) {
+        expect(typeof errorCallback.mostRecentCall.args[0]).toEqual("object");
+        expect(successCallback).not.toHaveBeenCalled();
+      }
+    });
   });
 });
