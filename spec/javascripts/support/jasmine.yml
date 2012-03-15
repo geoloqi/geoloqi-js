@@ -11,9 +11,10 @@
 #   - dist/**/*.js
 #
 src_files:
-    - source/easyXDM/json2.min.js
-    - source/easyXDM/easyXDM.min.js
-    - source/geoloqi-client.js
+#    - source/easyXDM/json2.min.js
+#    - source/easyXDM/easyXDM.min.js
+#    - source/geoloqi-client.js
+     - geoloqi.min.js
 
 # stylesheets
 #

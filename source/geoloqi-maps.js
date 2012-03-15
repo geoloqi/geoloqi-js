@@ -17,7 +17,7 @@ geoloqi.maps = (function () {
 
   //Sets the default map everything should reference
   exports.setDefault = function (newMap) {
-    if (map instanceof google.maps.Map) {
+    if (newMap instanceof google.maps.Map) {
       defaults.map = newMap;
       defaults.pin.map = newMap;
       defaults.line.map = newMap;
@@ -588,13 +588,21 @@ geoloqi.maps = (function () {
 
       this.hide = function() {
         this.infoVisible = false;
-        this.info.hide();
+        if(!this.options.content instanceof google.maps.InfoWindow){
+          this.info.hide();
+        } else {
+          this.close();
+        }
         return this;
       };
 
       this.show = function() {
         this.infoVisible = true;
-        this.info.show(defaults.map, this.marker);
+        if(!this.options.content instanceof google.maps.InfoWindow){
+          this.info.show(defaults.map, this.marker);
+        } else {
+          this.open();
+        }
         return this;
       };
 
