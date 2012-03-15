@@ -1,4 +1,3 @@
-
 var geoloqi = (function () {
   var version = '1.0.7',
   anonymousCallbacks = {},
@@ -15,6 +14,7 @@ var geoloqi = (function () {
   cookieName = '_geoloqi_auth',
   config = {},
   auth = null,
+  locationWatcher = null,
   util = {},
   onAuthorize = null,
   onOAuthError = null,
@@ -64,6 +64,9 @@ var geoloqi = (function () {
   exports.onLoginError = onLoginError;
 
   function init(config) {
+    
+    util.browser.init();
+    
     var fragment = document.location.hash.substring(1),
         newAuth = {};
 
@@ -167,7 +170,6 @@ var geoloqi = (function () {
   }
   exports.post = post;
 
-
   function login(args) {
     execute('POST', 'oauth/token', {
       'grant_type' : 'password',
@@ -249,7 +251,12 @@ var geoloqi = (function () {
     }
   }
   exports.receive = receive;
-
+  
+  /*
+  Utilities for manipulating sessions
+  -----------------------------------
+  */
+  
   util.session = (function(){
     var exports = {}
 
@@ -299,6 +306,12 @@ var geoloqi = (function () {
     return result;
   }
 
+  
+  /*
+  Utilities for working with cookies
+  ----------------------------------
+  */
+
   util.cookie = (function () {
     var exports = {};
 
@@ -332,7 +345,133 @@ var geoloqi = (function () {
 
     return exports;
   }());
+  
+  /*
+  Utilities for browser detection
+  -------------------------------
+  */
+  
+  util.browser = {
+    init: function () {
+      this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
+      this.version = this.searchVersion(navigator.userAgent)
+        || this.searchVersion(navigator.appVersion)
+        || "an unknown version";
+      this.OS = this.searchString(this.dataOS) || "an unknown OS";
+    },
+    searchString: function (data) {
+      for (var i=0;i<data.length;i++) {
+        var dataString = data[i].string;
+        var dataProp = data[i].prop;
+        this.versionSearchString = data[i].versionSearch || data[i].identity;
+        if (dataString) {
+          if (dataString.indexOf(data[i].subString) != -1)
+            return data[i].identity;
+        }
+        else if (dataProp)
+          return data[i].identity;
+      }
+    },
+    searchVersion: function (dataString) {
+      var index = dataString.indexOf(this.versionSearchString);
+      if (index == -1) return;
+      return parseFloat(dataString.substring(index+this.versionSearchString.length+1));
+    },
+    dataBrowser: [
+      {
+        string: navigator.userAgent,
+        subString: "Chrome",
+        identity: "Chrome"
+      },
+      {   string: navigator.userAgent,
+        subString: "OmniWeb",
+        versionSearch: "OmniWeb/",
+        identity: "OmniWeb"
+      },
+      {
+        string: navigator.vendor,
+        subString: "Apple",
+        identity: "Safari",
+        versionSearch: "Version"
+      },
+      {
+        prop: window.opera,
+        identity: "Opera",
+        versionSearch: "Version"
+      },
+      {
+        string: navigator.vendor,
+        subString: "iCab",
+        identity: "iCab"
+      },
+      {
+        string: navigator.vendor,
+        subString: "KDE",
+        identity: "Konqueror"
+      },
+      {
+        string: navigator.userAgent,
+        subString: "Firefox",
+        identity: "Firefox"
+      },
+      {
+        string: navigator.vendor,
+        subString: "Camino",
+        identity: "Camino"
+      },
+      {   // for newer Netscapes (6+)
+        string: navigator.userAgent,
+        subString: "Netscape",
+        identity: "Netscape"
+      },
+      {
+        string: navigator.userAgent,
+        subString: "MSIE",
+        identity: "Explorer",
+        versionSearch: "MSIE"
+      },
+      {
+        string: navigator.userAgent,
+        subString: "Gecko",
+        identity: "Mozilla",
+        versionSearch: "rv"
+      },
+      {     // for older Netscapes (4-)
+        string: navigator.userAgent,
+        subString: "Mozilla",
+        identity: "Netscape",
+        versionSearch: "Mozilla"
+      }
+    ],
+    dataOS : [
+      {
+        string: navigator.platform,
+        subString: "Win",
+        identity: "Windows"
+      },
+      {
+        string: navigator.platform,
+        subString: "Mac",
+        identity: "Mac"
+      },
+      {
+           string: navigator.userAgent,
+           subString: "iPhone",
+           identity: "iPhone/iPod"
+        },
+      {
+        string: navigator.platform,
+        subString: "Linux",
+        identity: "Linux"
+      }
+    ]
 
+  };
+
+  /*
+  Utilities for working with localStorage
+  ---------------------------------------
+  */
   util.localStorage = (function () {
     var exports = {};
 
@@ -354,9 +493,179 @@ var geoloqi = (function () {
     return exports;
   }());
 
-  util.guid = function () {
+  /*
+  Utilities for working with dates
+  --------------------------------
+  */
+  
+  util.date = {};
+
+  util.date.toISO8601 = function(d){
+   function pad(n){return n<10 ? '0'+n : n};
+   return d.getUTCFullYear()+'-'
+        + pad(d.getUTCMonth()+1)+'-'
+        + pad(d.getUTCDate())+'T'
+        + pad(d.getUTCHours())+':'
+        + pad(d.getUTCMinutes())+':'
+        + pad(d.getUTCSeconds())+'Z';
+  };
+
+  /*
+  GUID Utility
+  ------------
+  */
+
+  util.guid = function() {
     return 'g' + (Math.random() * (1<<30)).toString(16).replace('.', '');
+  };
+
+  /*
+  Utilities for deep and shallow merging of objects
+  -------------------------------------------------
+  */
+
+  util.merge = function(obj1, obj2) {
+    var obj3 = {};
+    for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
+    for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
+    return obj3;
+  };
+
+  util.mergeDeep = function(obj1, obj2) {
+
+    for (var p in obj2) {
+      try {
+        // Property in destination object set; update its value.
+        if ( obj2[p].constructor==Object ) {
+          obj1[p] = MergeRecursive(obj1[p], obj2[p]);
+
+        } else {
+          obj1[p] = obj2[p];
+
+        }
+
+      } catch(e) {
+        // Property in destination object not set; create it and set its value.
+        obj1[p] = obj2[p];
+
+      }
+    }
+
+    return obj1;
   }
+
+/*
+  HTML5 Geolocation helpers
+  -------------------------
+  */
+
+  pointDefaults = {
+    success: null,
+    error: null,
+    context: null,
+    client: {
+      platform: util.browser.OS,
+      browser: util.browser.browser,
+      version: util.browser.version,
+      browser_version: util.browser.browser + " " +util.browser.version,
+      name: null,
+      version: null
+    },
+    raw: null
+  };
+
+  sendPoint = function(position, settings){
+    /*
+    geoloqi.post("location/update", {
+      date: util.date.toISO8601(new Date(position.timestamp)),
+      location: { 
+        position: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          speed: (position.coords.speed) ? position.coords.speed || 0,
+          altitude: (position.coords.altitude) ? position.coords.altitude || 0,
+          horizontal_accuracy: position.coords.accuracy,
+          vertical_accuracy: (position.coords.altitudeAccuracy) ? position.coords.altitudeAccuracy || 0
+        }
+        type: "point"
+      },
+      client: {
+        platform: this.settings.browser.OS,
+        browser: this.settings.browser.browser,
+        version: this.settings.browser.version,
+        browser_version: this.settings.browser.browser + " " +this.settings.browser.version,
+        name: this.settings.client.name,
+        version: this.settings.client.version
+      }
+      raw: this.settings.raw,
+    });
+    */
+    if(typeof self.settings.success === "function"){
+      self.settings.success.apply(self.settings.context, [position]);
+    }
+  };
+
+  watchLocation = function (opts) {
+    var object = function () {
+      var self = this;
+      this.settings = util.mergeDeep(pointDefaults, opts);
+      this.settings.context = (!this.settings.context) ? this : this.settings.context;
+
+      this.success = function(position){
+        sendPoint(position, self.settings);
+      };
+
+      this.error = function(error){
+        if(typeof self.settings.error === "error"){
+          self.settings.error.call(self.settings.context, [error]);
+        }
+      };
+
+      this._watcher = navigator.geolocation.watchPosition(this.success, this.error, {
+        enableHighAccuracy: true
+      });
+    };
+
+    object.prototype = {
+      stop: function(){
+        console.log(this._watcher);
+        navigator.geolocation.clearWatch(this._watcher);
+      },
+      start: function(){
+        this._watcher = navigator.geolocation.watchPosition(this.success, this.error, {
+          enableHighAccuracy: true
+        });  
+      }
+    };
+    if(logged_in && navigator.geolocation){
+      return new object();
+    } else {
+      return false;
+    };
+  };
+  exports.locationWatcher = locationWatcher;
+
+  updateLocation = function(opts){
+    settings = util.mergeDeep(pointDefaults, opts);
+    function success(position){
+      sendPoint(position, settings);
+      if(typeof settings.success === "function"){
+        settings.success.apply(settings.context, [position]);
+      }
+    };
+    function error(){
+      if(typeof settings.error === "function"){
+        settings.error.apply(settings.context, [position]);
+      }
+    };
+    
+    if(logged_in && navigator.geolocation){
+      this._watcher = navigator.geolocation.watchPosition(success, error, {
+        enableHighAccuracy: true
+      });
+    };
+  };
+  exports.updatePostition = updatePostition;
 
   return exports;
 
