@@ -53,6 +53,8 @@
           error: function(error){
             console.log(error);
           }
+        });
+      };
     </script>
     <title>Geoloqi Client JS Test</title>
   </head>
@@ -70,5 +72,10 @@
     <a href="#" onclick="console.log(geoloqi.logged_in()); return false">Is Logged In?</a>
     <br>
     <a href="#" onclick="login('USERNAME', 'PASSWORD'); return false">Login With Password</a>
+    <br>
+    <a href="#" onclick="startWatcher(); return false">Start Watching Position</a>
+    <br>
+    <a href="#" onclick="updatePostionOnce(); return false">Update Position Once</a>
+    <br>
   </body>
 </html>
