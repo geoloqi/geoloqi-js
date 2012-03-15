@@ -600,8 +600,8 @@ var geoloqi = (function () {
       raw: this.settings.raw,
     });
     */
-    if(typeof self.settings.success === "function"){
-      self.settings.success.apply(self.settings.context, [position]);
+    if(typeof settings.success === "function"){
+      settings.success.apply(settings.context, [position]);
     }
   };
 
@@ -643,7 +643,7 @@ var geoloqi = (function () {
       return false;
     };
   };
-  exports.locationWatcher = locationWatcher;
+  exports.watchLocation = watchLocation;
 
   updateLocation = function(opts){
     settings = util.mergeDeep(pointDefaults, opts);
@@ -653,6 +653,7 @@ var geoloqi = (function () {
         settings.success.apply(settings.context, [position]);
       }
     };
+    
     function error(){
       if(typeof settings.error === "function"){
         settings.error.apply(settings.context, [position]);
@@ -660,12 +661,12 @@ var geoloqi = (function () {
     };
     
     if(logged_in && navigator.geolocation){
-      this._watcher = navigator.geolocation.watchPosition(success, error, {
+      navigator.geolocation.getCurrentPosition(success, error, {
         enableHighAccuracy: true
       });
     };
   };
-  exports.updatePostition = updatePostition;
+  exports.updateLocation = updateLocation;
 
   return exports;
 
