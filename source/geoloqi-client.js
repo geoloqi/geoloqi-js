@@ -17,7 +17,8 @@ var geoloqi = (function () {
   auth = null,
   util = {},
   onAuthorize = null,
-  onOAuthError = null;
+  onOAuthError = null,
+  onLoginError = null;
   
   var socket = new _geoloqiEasyXDM.Socket({
     remote: receiverUrl,
@@ -60,6 +61,7 @@ var geoloqi = (function () {
   exports.config = config;
   exports.onAuthorize = onAuthorize;
   exports.onOAuthError = onOAuthError;
+  exports.onLoginError = onLoginError;
 
   function init(config) {
     var fragment = document.location.hash.substring(1),
@@ -83,7 +85,7 @@ var geoloqi = (function () {
       var newAuth = fragment_or_object;
     }
 
-    if (newAuth.access_token) {
+    if (newAuth) {
       exports.auth = newAuth;
 
       util.session.create(newAuth);
@@ -177,7 +179,11 @@ var geoloqi = (function () {
   exports.login = login;
 
   function processLoginCallback(response, error) {
-    processAuth(response);
+    if(!error) {
+      processAuth(response);
+    } else {
+      exports.onLoginError(error);
+    }
   }
 
   function executeWithAccessToken(method, path, args, callback) {
