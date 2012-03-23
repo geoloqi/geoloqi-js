@@ -8,7 +8,7 @@
     <script type="text/javascript">
       var geoloqiReceiver = (function() {
         var apiUrl = 'https://api.geoloqi.com/1/';
-        var version = '1.0.1';
+        var version = '1.0.2';
         var build_version = '4a97785ab673a9b0612fc7a3fcd02e0ecdee888f';
         var exports = {};
 
@@ -25,7 +25,7 @@
         });
 
         function execute(o, callback) {
-          var ua = userAgent.parse(navigator.userAgent),
+          var ua = UserAgent.parse(navigator.userAgent),
           headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',

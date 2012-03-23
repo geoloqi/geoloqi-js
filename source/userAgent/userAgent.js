@@ -20,7 +20,7 @@ if (!Array.prototype.map) {
   };
 }
 
-UserAgent = (function(){
+window.UserAgent = (function(){
 
   exports = {};
 
