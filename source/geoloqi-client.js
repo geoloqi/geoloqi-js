@@ -1,7 +1,7 @@
 var geoloqi = (function () {
-  var version = '1.0.8',
-  build_version = '',
-  anonymousCallbacks = {},
+  var version = '1.0.8';
+  var build_version = '';
+  var anonymousCallbacks = {},
   self = this,
   exports = {},
   apiUrl = 'https://api.geoloqi.com',

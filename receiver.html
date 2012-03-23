@@ -9,6 +9,7 @@
       var geoloqiReceiver = (function() {
         var apiUrl = 'https://api.geoloqi.com/1/';
         var version = '1.0.1';
+        var build_version = '';
         var exports = {};
 
         var socket = new easyXDM.Socket({
@@ -32,6 +33,7 @@
             'X-LQ-SDK-Version': o.sdkVersion,
             'X-LQ-SDK-Build': o.buildVersion,
             'X-LQ-JS-Receiver-Version': version,
+            'X-LQ-JS-Receiver-Build': build_version,
             'X-LQ-Browser-Family': ua.family,
             'X-LQ-Browser-Version': ua.major,
             'X-LQ-Package-Name': o.packageName,
