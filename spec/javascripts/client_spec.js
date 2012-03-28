@@ -98,14 +98,14 @@ describe("Geoloqi Client Authentication", function() {
     });
 
     waitsFor(function(){
-      return geoloqi.auth;
+      return geoloqi.logged_in();
     }, "authentication with username and password timeout", 1000);
 
     runs(function(){
       geoloqi.expire();
       expect(geoloqi.logged_in()).toBeFalsy(false);
       expect(document.cookie).toBeFalsy();
-      expect(localStorage.getItem("_geoloqi.auth")).toBeFalsy();
+      expect(localStorage.getItem("_geoloqi_auth")).toBeFalsy();
     });
 
   });

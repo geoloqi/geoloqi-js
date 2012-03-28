@@ -150,7 +150,7 @@ var geoloqi = (function () {
 
   function expire() {
     exports.auth = null;
-    util.cookie.erase();
+    util.session.destroy();
   }
   exports.expire = expire;
 
@@ -368,9 +368,9 @@ var geoloqi = (function () {
       return JSON.parse(localStorage.getItem(cookieName));
     };
     exports.get = get;
-    
+
     function erase(){
-      set("");
+      localStorage.removeItem(cookieName);
     };
     exports.erase = erase;
 
