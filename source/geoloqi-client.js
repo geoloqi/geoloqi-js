@@ -1,6 +1,6 @@
 var geoloqi = (function () {
   var version = '1.0.9';
-  var build_version = '297f1c2ba280d92cabc4476ae0e66f40020d9f1b';
+  var build_version = '253c68b6e6385b91bd1f3856dfc30ef6ba0a2e89';
   var anonymousCallbacks = {},
   self = this,
   exports = {},
@@ -473,7 +473,6 @@ var geoloqi = (function () {
 
     object.prototype = {
       stop: function(){
-        console.log(this._watcher);
         navigator.geolocation.clearWatch(this._watcher);
       },
       start: function(){
