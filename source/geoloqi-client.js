@@ -59,11 +59,6 @@ var geoloqi = (function () {
     }
   });
 
-  exports.config = config;
-  exports.onAuthorize = onAuthorize;
-  exports.onOAuthError = onOAuthError;
-  exports.onLoginError = onLoginError;
-
   function init(config) {
     var fragment = document.location.hash.substring(1),
         newAuth = {};
@@ -76,8 +71,13 @@ var geoloqi = (function () {
       processAuth(fragment);
     }
   }
+
   exports.init = init;
   exports.auth = auth;
+  exports.config = config;
+  exports.onAuthorize = onAuthorize;
+  exports.onOAuthError = onOAuthError;
+  exports.onLoginError = onLoginError;
 
   function processAuth(fragment_or_object) {
     if (typeof fragment_or_object === 'string') {
@@ -211,8 +211,8 @@ var geoloqi = (function () {
       'callbackId': callbackId,
       'sdkVersion': version,
       'sdkBuild': build_version,
-      'packageName': (config.package_name) ? config.package_name : "",
-      'packageVersion': (config.package_version) ? config.package_version : ""
+      'packageName': (config.package_name) ? config.package_name : null,
+      'packageVersion': (config.package_version) ? config.package_version : null
     };
     anonymousCallbacks[callbackId] = callback;
     socket.postMessage(JSON.stringify(message));
