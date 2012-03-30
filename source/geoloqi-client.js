@@ -59,13 +59,12 @@ var geoloqi = (function () {
     }
   });
 
-  function init(config) {
+  function init(opts) {
     var fragment = document.location.hash.substring(1),
         newAuth = {};
 
     exports.auth = util.session.load();
-
-    self.config = config;
+    config = opts;
 
     if (fragment !== "") {
       processAuth(fragment);
@@ -171,7 +170,7 @@ var geoloqi = (function () {
   function login(args) {
     execute('POST', 'oauth/token', {
       'grant_type' : 'password',
-      'client_id' : self.config.client_id,
+      'client_id' : config.client_id,
       'username' : args.username,
       'password' : args.password
     }, processLoginCallback);
@@ -200,9 +199,7 @@ var geoloqi = (function () {
     if(method == 'POST' && typeof(args) === 'string') {
       args = util.objectify(args);
     }
-
     var access_token = (exports.auth !== null) ? exports.auth.access_token : '';
-
     message = {
       'method': method,
       'path': path,
@@ -271,9 +268,8 @@ var geoloqi = (function () {
       localStorageTest = false;
     }
 
-    featureLevel = (localStorageTest) ? "localStorage" : "cookie";
-    persist = (config.persist) ? config.persist : featureLevel;
-
+    persist = (localStorageTest) ? "localStorage" : "cookie";
+    persist = 'cookie';
     create = function(string){  
       util[persist].set(string);
     };
@@ -316,10 +312,8 @@ var geoloqi = (function () {
   ----------------------------------
   */
 
-  util.cookie = (function () {
-    var exports = {};
-
-    function set(value, secondsUntilExpire) {
+  util.cookie = {
+    set: function(value, secondsUntilExpire) {
       if (secondsUntilExpire) {
         var date = new Date();
         date.setTime(date.getTime()+(secondsUntilExpire*1000));
@@ -327,10 +321,8 @@ var geoloqi = (function () {
       }
       else var expires = "";
       document.cookie = cookieName + "=" + JSON.stringify(value) + expires + "; path=/";
-    }
-    exports.set = set;
-
-    function get() {
+    },
+    get: function() {
       var nameEQ = cookieName + "=";
       var ca = document.cookie.split(';');
       for (var i=0;i < ca.length;i++) {
@@ -340,42 +332,28 @@ var geoloqi = (function () {
       }
 
       return null;
+    },
+    erase: function() {
+      util.cookie.set("",-1);
     }
-    exports.get = get;
-
-    function erase() {
-      set("",-1);
-    }
-    exports.erase = erase;
-
-    return exports;
-  }());
+  };
   
  
   /*
   Utilities for working with localStorage
   ---------------------------------------
   */
-  util.localStorage = (function () {
-    var exports = {};
-
-    function set(value){
+  util.localStorage = {
+    set:function(value){
       localStorage.setItem(cookieName, JSON.stringify(value));
-    };
-    exports.set = set;
-    
-    function get(){
+    },
+    get: function(){
       return JSON.parse(localStorage.getItem(cookieName));
-    };
-    exports.get = get;
-
-    function erase(){
+    },
+    erase: function(){
       localStorage.removeItem(cookieName);
-    };
-    exports.erase = erase;
-
-    return exports;
-  }());
+    }
+  };
 
   /*
   Utilities for working with dates

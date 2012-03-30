@@ -102,9 +102,12 @@ describe("Geoloqi Client Authentication", function() {
     }, "authentication with username and password timeout", 1000);
 
     runs(function(){
-      geoloqi.expire();
+      geoloqi.expire();    
+    });
+
+    runs(function(){
       expect(geoloqi.logged_in()).toBeFalsy(false);
-      expect(document.cookie).toBeFalsy();
+      expect(document.cookie.match(/_geoloqi_auth/)).toBeFalsy();
       expect(localStorage.getItem("_geoloqi_auth")).toBeFalsy();
     });
 
