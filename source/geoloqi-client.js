@@ -1,5 +1,5 @@
 var geoloqi = (function () {
-  var version = '1.0.9';
+  var version = '1.0.10';
   var build_version = '253c68b6e6385b91bd1f3856dfc30ef6ba0a2e89';
   var anonymousCallbacks = {},
   self = this,
