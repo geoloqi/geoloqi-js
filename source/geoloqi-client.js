@@ -269,7 +269,7 @@ var geoloqi = (function () {
     }
 
     persist = (localStorageTest) ? "localStorage" : "cookie";
-    persist = 'cookie';
+
     create = function(string){  
       util[persist].set(string);
     };
