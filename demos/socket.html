@@ -20,7 +20,7 @@
         var drunkenBicycle = null;
 
         var testSocket = new geoloqi.Socket('trip', 'TQ4ew3Z');
-        console.log(testSocket);
+
         testSocket.events.location = function(location) {
           if(drunkenBicycle === null) {
             drunkenBicycle = geoloqi.maps.pins.Basic({position: new google.maps.LatLng(location.latitude, location.longitude)});
@@ -46,7 +46,6 @@
 
   </head>
   <body>
-    <div id="geoloqi-root" style="display:none;"></div>
     <div id="map"></div>
   </body>
 </html>

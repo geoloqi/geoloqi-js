@@ -35,12 +35,19 @@
             'X-LQ-JS-Receiver-Version': version,
             'X-LQ-JS-Receiver-Build': build_version,
             'X-LQ-Browser-Family': ua.family,
-            'X-LQ-Browser-Version': ua.major,
-            'X-LQ-Package-Name': o.packageName,
-            'X-LQ-Package-Version': o.packageVersion,
+            'X-LQ-Browser-Version': ua.major
           },
+          
           xhr = util.getXHR(),
           payload = {};
+          
+          if (o.packageName) {
+            headers['X-LQ-Package-Name'] = o.packageName;
+          }
+          
+          if (o.packageVersion) {
+            headers['X-LQ-Package-Version'] = o.packageVersion;
+          }
 
           if(typeof(o.accessToken) === 'string') {
             headers['Authorization'] = 'OAuth '+o.accessToken;

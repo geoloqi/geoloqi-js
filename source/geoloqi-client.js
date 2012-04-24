@@ -20,6 +20,10 @@ var geoloqi = (function () {
   onAuthorize = null,
   onOAuthError = null,
   onLoginError = null;
+  defaultConfig = {
+    package_name: null,
+    package_version: null
+  }
   
   var socket = new _geoloqiEasyXDM.Socket({
     remote: receiverUrl,
@@ -64,7 +68,8 @@ var geoloqi = (function () {
         newAuth = {};
 
     exports.auth = util.session.load();
-    config = opts;
+
+    config = util.merge(defaultConfig, opts);
 
     if (fragment !== "") {
       processAuth(fragment);
@@ -268,7 +273,8 @@ var geoloqi = (function () {
       localStorageTest = false;
     }
 
-    persist = (localStorageTest) ? "localStorage" : "cookie";
+    feature = (localStorageTest) ? "localStorage" : "cookie";
+    persist = (config.persist) ? config.persist : feature;
 
     create = function(string){  
       util[persist].set(string);
