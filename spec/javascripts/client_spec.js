@@ -174,8 +174,8 @@ describe("Geoloqi API Client", function() {
       expect(callback.mostRecentCall.args[1]).toBeUndefined();
     });
   });
-
-  it("should get the users profile and execute a callback function in a specific context(4 params)", function(){
+  
+  it("should get the users profile and execute a callback function in a specific context(3 params)", function(){
     geoloqi.testing.fakeCallback = function(){
       geoloqi.testing.withscope = this.test;
     };
@@ -185,7 +185,7 @@ describe("Geoloqi API Client", function() {
       scope = {
         test: "function run in custom scope"
       }
-      geoloqi.get("account/profile", {}, geoloqi.testing.fakeCallback, scope);
+      geoloqi.get("account/profile", geoloqi.testing.fakeCallback, scope);
     });
 
     waitsFor(function(){
@@ -210,7 +210,7 @@ describe("Geoloqi API Client", function() {
       scope = {
         test: "function run in custom scope"
       }
-      geoloqi.get("account/profile", geoloqi.testing.fakeCallback, scope);
+      geoloqi.get("account/profile", {}, geoloqi.testing.fakeCallback, scope);
     });
 
     waitsFor(function(){

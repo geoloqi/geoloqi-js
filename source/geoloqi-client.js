@@ -166,21 +166,20 @@ var geoloqi = (function () {
       if(typeof arguments[1] === "function" && typeof arguments[2] === "object"){
         alias_callback = arguments[1];
         alias_context = arguments[2];
-
         executeWithAccessToken('GET', path, {}, alias_callback, alias_context);
       } else {
-        executeWithAccessToken('GET', path, args, callback, this);  
+        executeWithAccessToken('GET', path, args, callback);  
       }
     } else if(arguments.length == 2) {
       // path, callback
       callback = arguments[1];
-      executeWithAccessToken('GET', path, {}, callback, this);
+      executeWithAccessToken('GET', path, {}, callback);
     }
   }
   exports.get = get;
 
   function post(path, args, callback, context) {
-    executeWithAccessToken('POST', path, args, callback, context || this);
+    executeWithAccessToken('POST', path, args, callback, context);
   }
   exports.post = post;
 
@@ -211,8 +210,7 @@ var geoloqi = (function () {
 
   function execute(method, path, args, callback, context) {
     var callbackId = util.guid(),
-        message = {},
-        context = (typeof context === "object" && context != null) ? context : this;
+        message = {};
 
     if(method == 'POST' && typeof(args) === 'string') {
       args = util.objectify(args);
@@ -230,11 +228,11 @@ var geoloqi = (function () {
       'packageVersion': (config.package_version) ? config.package_version : null
     };
     if(callback){
-      anonymousCallbacks[callbackId] = util.bind(callback, context);
+      anonymousCallbacks[callbackId] = (context) ? util.bind(callback, context) : callback;
     }
     socket.postMessage(JSON.stringify(message));
   }
-  exports.execute = execute;
+  exports.execute = execute;  
 
   /* Receive the response from the iframe and execute the callback stored in an array (yes, this is how you're supposed to do it).
      We also check to make sure it was actually sent from Geoloqi, because other API libraries may be using postMessage as well. */
@@ -628,7 +626,7 @@ var geoloqi = (function () {
         post('batch/run', {
           access_token: exports.auth.access_token,
           batch: this.jobs
-        }, callback, context || geoloqi);
+        }, callback, context);
         return this;
       },
       clear: function(){
