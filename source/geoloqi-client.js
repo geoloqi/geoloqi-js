@@ -158,17 +158,29 @@ var geoloqi = (function () {
   }
   exports.expire = expire;
 
-  function get(path, args, callback) {
-    if(arguments.length == 3) {
-      executeWithAccessToken('GET', path, args, callback);
+  function get(path, args, callback, context) {
+    console.log(arguments[0], arguments[1], arguments[2], arguments[3]);
+    if(arguments.length == 4) {
+      executeWithAccessToken('GET', path, args, callback, context);
+    } else if(arguments.length == 3) {
+      if(typeof arguments[1] === "function" && typeof arguments[2] === "object"){
+        alias_callback = arguments[1];
+        alias_context = arguments[2];
+
+        executeWithAccessToken('GET', path, {}, alias_callback, alias_context);
+      } else {
+        executeWithAccessToken('GET', path, args, callback, this);  
+      }
     } else if(arguments.length == 2) {
-      executeWithAccessToken('GET', arguments[0], {}, arguments[1]);
+      // path, callback
+      callback = arguments[1];
+      executeWithAccessToken('GET', path, {}, callback, this);
     }
   }
   exports.get = get;
 
-  function post(path, args, callback) {
-    executeWithAccessToken('POST', path, args, callback);
+  function post(path, args, callback, context) {
+    executeWithAccessToken('POST', path, args, callback, context || this);
   }
   exports.post = post;
 
@@ -190,16 +202,17 @@ var geoloqi = (function () {
     }
   }
 
-  function executeWithAccessToken(method, path, args, callback) {
+  function executeWithAccessToken(method, path, args, callback, context) {
     if (!logged_in()) {
       throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
     }
-    execute(method, path, args, callback);
+    execute(method, path, args, callback, context);
   }
 
-  function execute(method, path, args, callback) {
+  function execute(method, path, args, callback, context) {
     var callbackId = util.guid(),
-      message = {};
+        message = {},
+        context = (typeof context === "object" && context != null) ? context : this;
 
     if(method == 'POST' && typeof(args) === 'string') {
       args = util.objectify(args);
@@ -216,7 +229,7 @@ var geoloqi = (function () {
       'packageName': (config.package_name) ? config.package_name : null,
       'packageVersion': (config.package_version) ? config.package_version : null
     };
-    anonymousCallbacks[callbackId] = callback;
+    anonymousCallbacks[callbackId] = util.bind(callback, context);
     socket.postMessage(JSON.stringify(message));
   }
   exports.execute = execute;
@@ -422,6 +435,62 @@ var geoloqi = (function () {
     return obj1;
   }
 
+  util.toQueryString= function(obj, parentObject) {
+    if( typeof obj != 'object' ) return '';
+   
+    var rv = '';
+    for(var prop in obj) if (obj.hasOwnProperty(prop) ) {
+
+      var qname = parentObject
+         ? parentObject + '.' + prop
+         : prop;
+
+      // Expand Arrays
+      if (obj[prop] instanceof Array) {
+        for( var i = 0; i < obj[prop].length; i++ ){
+          if( typeof obj[prop][i] == 'object' ){
+            rv += '&' + obj2query( obj[prop][i], qname );
+          } else{
+            rv += '&' + encodeURIComponent(qname) + '=' + encodeURIComponent( obj[prop][i] );
+          }
+        }
+      // Expand Dates
+      } else if (obj[prop] instanceof Date) {
+        rv += '&' + encodeURIComponent(qname) + '=' + obj[prop].getTime();
+
+      // Expand Objects
+      } else if (obj[prop] instanceof Object) {
+        // If they're String() or Number() etc
+        if (obj.toString && obj.toString !== Object.prototype.toString){
+          rv += '&' + encodeURIComponent(qname) + '=' + encodeURIComponent( obj[prop].toString() );
+        // Otherwise, we want the raw properties
+        } else{
+          rv += '&' + obj2query(obj[prop], forPHP, qname);
+        }
+      // Output non-object
+      } else {
+        rv += '&' + encodeURIComponent(qname) + '=' + encodeURIComponent( obj[prop] );
+      }
+    }
+    return rv.replace(/^&/,'');
+  }
+  
+  //Adapted from underscore.js
+  util.bind = function(func, context) {
+    var bound, args;
+    if (typeof func !== "function") throw new TypeError;
+    if (typeof Function.prototype.bind == 'function') return func.bind(context);
+    args = Array.prototype.slice.call(arguments, 2);
+    return bound = function() {
+      if (!(this instanceof bound)) return func.apply(context, args.concat(Array.prototype.slice.call(arguments)));
+      ctor.prototype = func.prototype;
+      var self = new ctor;
+      var result = func.apply(self, args.concat(Array.prototype.slice.call(arguments)));
+      if (Object(result) === result) return result;
+      return self;
+    };
+  };
+
 /*
   HTML5 Geolocation helpers
   -------------------------
@@ -500,6 +569,7 @@ var geoloqi = (function () {
 
   updateLocation = function(opts){
     settings = util.merge(pointDefaults, opts);
+    
     function success(position){
       sendPoint(position, settings);
       if(typeof settings.success === "function"){
@@ -524,6 +594,49 @@ var geoloqi = (function () {
     };
   };
   exports.updateLocation = updateLocation;
+
+  Batch = function(){
+    
+    var object = function(){
+      this.jobs = [];
+    }
+
+    object.prototype = {
+      get: function(path, query, headers){
+        this.build_request(path+util.toQueryString(query), {}, headers);
+        return this;
+      },
+      post: function(path, query, headers){
+        this.build_request(path, query, headers);
+        return this;
+      },
+      build_request: function(path, query, headers){
+        this.jobs.push({
+          relative_url: path,
+          body: query,
+          headers: headers
+        });
+        return this;
+      },
+      run: function(callback, context){
+        if(!logged_in()) {
+          throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
+        }
+        post('batch/run', {
+          access_token: exports.auth.access_token,
+          batch: this.jobs
+        }, callback, context || geoloqi);
+        return this;
+      },
+      clear: function(){
+        this.jobs = [];
+        return this;
+      }
+    }
+
+    return new object();
+  }
+  exports.Batch = Batch;
 
   return exports;
 

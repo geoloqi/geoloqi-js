@@ -2,7 +2,7 @@
 describe("Geoloqi Client Authentication", function() {
 
   beforeEach(function(){
-    geoloqi.init({'client_id': '4cd87809ded4d0e8d1a592142bea6f31'});
+    geoloqi.init({'client_id': 'geoloqi_website'});
     geoloqi.expire();
   });
 
@@ -118,7 +118,7 @@ describe("Geoloqi Client Authentication", function() {
 describe("Geoloqi API Client", function() {
   
   beforeEach(function(){
-    geoloqi.init({'client_id': '4cd87809ded4d0e8d1a592142bea6f31'});
+    geoloqi.init({'client_id': 'geoloqi_website'});
     
     if(!geoloqi.logged_in()){
       runs(function(){
