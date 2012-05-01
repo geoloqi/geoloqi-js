@@ -12,13 +12,13 @@ This library is split up into three javascript files in the source:
 * geoloqi-socket.js - Allows you to stream data from Geoloqi's servers in real time using Web Sockets!
 
 You can load them all right now from our CDN, with one file!
-
+    ```html
     <script type="text/javascript" src="https://api.geoloqi.com/js/geoloqi.min.js"></script>
-    
+    ```
 This file will always be the latest version. If you'd prefer to fix to a specific version, check the versions folder:
-
+    ```html
     <script type="text/javascript" src="https://api.geoloqi.com/js/versions/geoloqi-1.0.12.min.js"></script>
-
+    ```
 Usage
 ---
 
@@ -28,7 +28,7 @@ This first example only requires an access token, which all user accounts receiv
 
 **You should never use your access token in production applicaitons as it would allow anyone to read/write your data.** 
 It is only used here for demonstration purposes.
-
+    ```html
     <!DOCTYPE html>
     <html>
       <head>
@@ -60,9 +60,9 @@ It is only used here for demonstration purposes.
         <br>
       </body>
     </html>
-
+    ```
 Want to make an application with OAuth2? Create an application at the [Geoloqi Developers Site](https://developers.geoloqi.com/applications) and try this:
-
+    ```html
     <html>
       <head>
         <script type="text/javascript" src="https://api.geoloqi.com/js/geoloqi.min.js"></script>
@@ -91,15 +91,17 @@ Want to make an application with OAuth2? Create an application at the [Geoloqi D
         <br><br>
       </body>
     </html>
-
+    ```
 Config Options
 ---
+    ```javascript
     geoloqi.init({
       client_id: '[STRING : enter your client_id here (get your applications client_id at https://developers.geoloqi.com/account/applications)]',
       package_name: '[STRING : an optional name for your package (will be tracked in statistics at https://developers.geoloqi.com/account)]',
       package_version: '[STRING : an optional version for your package (will be tracked in statistics at https://developers.geoloqi.com/account)]',
       persist: '[STRING : should be either localStorage or cookie, sets the persistance method used to store user sessions. Uses localStorage if available and cookies if not]'
     })
+    ```
     
 Making API Requests
 ---
@@ -119,13 +121,13 @@ Once the user is authenticated you can use `geolqoi.get()` or `geoloqi.post()` t
 **Examples**
     
 Get the authenticated users profile
-
+    ```javascript
     geoloqi.get('account/profile', function(response, error){
       console.log(response, error);
     });
-    
+    ```
 Get nearby places
-
+    ```javascript
     geoloqi.get('place/nearby', {
       latitude: 45.516454,
       longitude: -122.675997,
@@ -133,9 +135,9 @@ Get nearby places
     }, function(response, error){
         console.log(response, error);
     });
-    
+    ```
 Get the users last known location and run the callback where this = User
-
+    ```javascript
     User = {
       latitude: null,
       longitude: null
@@ -146,7 +148,7 @@ Get the users last known location and run the callback where this = User
       this.latitude = response.location.position.latitude;
       this.longitude = response.location.position.longitude;
     }, User);
-    
+    ```
 #### `geoloqi.post(method, arguments, callback, context)`
 
 * `path` the API method you want to run. You can find a full list of API methods [here](https://developers.geoloqi.com/api).
@@ -157,15 +159,15 @@ Get the users last known location and run the callback where this = User
 **Examples**
 
 Update the users profile
-
+    ```javascript
     geoloqi.post("account/profile", {
         'website': "http://mycoolsite.com"
     }, function(response, error){
         console.log(response, error);
     });
-    
+    ```
 Create a new place for the user
-
+    ```javascript
     geoloqi.post("place/create", {
       latitude: 45.516454,
       longitude: -122.675997,
@@ -174,12 +176,12 @@ Create a new place for the user
     }, function(response, error){
         console.log(response, error)
     });
-
+    ```
 Batch Requests
 ---
 
 The Geoloqi API supports running multupile requests at once through the `batch/run` method. you can use the `geolqoi.Batch()` helper to build batch requests and send then to the API. This is particularly good for things such as initialization functions where you may want to make multupile requests at once.
-
+    ```javascript
     MyApp = {
       places: [],
       User: {
@@ -210,7 +212,7 @@ The Geoloqi API supports running multupile requests at once through the `batch/r
       MyApp.User.profile = response.result[1].body
       MyApp.User.location = response.result[2].body
     });
-              
+    ```          
 HTML5 Geolocation Helpers
 ---
 
@@ -229,7 +231,7 @@ You can use `geoloqi.updateLocation()` to make a one time update to a users loca
 * context: an object to bind the context of the callback functions
 
 ** Example **
-
+    ```javascript
     geoloqi.updateLocation({
       success: function(position){
         console.log("updated users position", position);
@@ -238,7 +240,7 @@ You can use `geoloqi.updateLocation()` to make a one time update to a users loca
         console.log("there was an error");
       }
     });
-
+    ```
 #### `geoloqi.watchPosition()`
 
 You can use `geoloqi.watchPosition()` to make update a users location as it changes. Impliments `navigator.geolocation.watchPosition` under the hood and sends each point to the Geoloqi API and a callback function.
@@ -250,7 +252,7 @@ You can use `geoloqi.watchPosition()` to make update a users location as it chan
 * context: an object to bind the context of the callback functions
 
 ** Example **
-
+    ```javascript
     // when initialized this will start watching a users location automatically
     watch_user = new geoloqi.watchPosition({
       success: function(position){
@@ -266,7 +268,7 @@ You can use `geoloqi.watchPosition()` to make update a users location as it chan
     
     // start watching a users location again
     watch_user.start();
-
+    ```
 Found a bug?
 ---
 Let us know! Send a pull request or a patch. Questions? Ask! We're here to help. File issues, we'll respond to them!
