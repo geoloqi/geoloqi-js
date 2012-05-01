@@ -1,5 +1,6 @@
 Geoloqi Javascript Library for Web Browsers
 ===
+
 This is an interface library for the Geoloqi platform, written in JavaScript for the web browser.
 
 Similar to Facebook's connect-js, this library allows you to develop rich web applications using only javascript. There are no backend/server requirements - all you need to get started is a web browser and a text editor!
