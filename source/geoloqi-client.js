@@ -505,7 +505,6 @@ var geoloqi = (function () {
   };
 
   sendPoint = function(position, settings){
-    
     geoloqi.post("location/update", [{
       date: util.date.toISO8601(new Date(position.timestamp)),
       location: { 
@@ -519,68 +518,23 @@ var geoloqi = (function () {
         },
         type: "point"
       },
-      raw: this.settings.raw,
+      raw: settings.raw,
     }]);
     if(typeof settings.success === "function"){
       settings.success.apply(settings.context, [position]);
     }
   };
 
-  watchLocation = function (opts) {
-    var object = function () {
-      var self = this;
-      this.settings = util.merge(pointDefaults, opts);
-      this.settings.context = (!this.settings.context) ? this : this.settings.context;
-
-      this.success = function(position){
-        sendPoint(position, self.settings);
-      };
-
-      this.error = function(error){
-        if(typeof self.settings.error === "error"){
-          self.settings.error.call(self.settings.context, [error]);
-        }
-      };
-
-      this._watcher = navigator.geolocation.watchPosition(this.success, this.error, {
-        enableHighAccuracy: true
-      });
-    };
-
-    object.prototype = {
-      stop: function(){
-        navigator.geolocation.clearWatch(this._watcher);
-      },
-      start: function(){
-        this._watcher = navigator.geolocation.watchPosition(this.success, this.error, {
-          enableHighAccuracy: true
-        });  
-      }
-    };
-    
-    if(logged_in() && navigator.geolocation){
-      return new object();
-    } else if(!navigator.geolocation) {
-      throw "Client does not support HTML5 Geolocation. This function is unavailable";
-    } else if(!logged_in()) {
-      throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
-    };
-  };
-  exports.watchLocation = watchLocation;
-
   updateLocation = function(opts){
     settings = util.merge(pointDefaults, opts);
     
     function success(position){
       sendPoint(position, settings);
-      if(typeof settings.success === "function"){
-        settings.success.apply(settings.context, [position]);
-      }
     };
     
     function error(){
       if(typeof settings.error === "function"){
-        settings.error.apply(settings.context, [position]);
+        settings.error.apply(settings.context);
       }
     };
 
@@ -596,6 +550,41 @@ var geoloqi = (function () {
   };
   exports.updateLocation = updateLocation;
 
+  watchPosition = function (opts) {
+    var object = function () {
+      var self = this;
+      this.settings = util.merge(pointDefaults, opts);
+      this.settings.context = (!this.settings.context) ? this : this.settings.context;
+      this.success = function(position){
+        sendPoint(position, self.settings);
+      };
+      this.error = function(){
+        if(typeof self.settings.error === "function"){
+          self.settings.error.call(self.settings.context);
+        }
+      };
+      this.start();
+    };
+    object.prototype = {
+      stop: function(){
+        navigator.geolocation.clearWatch(this._watcher);
+      },
+      start: function(){
+        this._watcher = navigator.geolocation.watchPosition(this.success, this.error, {
+          enableHighAccuracy: true
+        });  
+      }
+    };
+    if(logged_in() && navigator.geolocation){
+      return new object();
+    } else if(!navigator.geolocation) {
+      throw "Client does not support HTML5 Geolocation. This function is unavailable";
+    } else if(!logged_in()) {
+      throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
+    };
+  };
+  exports.watchPosition = watchPosition;
+
   Batch = function(){
     
     var object = function(){
@@ -604,7 +593,7 @@ var geoloqi = (function () {
 
     object.prototype = {
       get: function(path, query, headers){
-        this.build_request(path+util.toQueryString(query), {}, headers);
+        this.build_request(path+"?"+util.toQueryString(query), {}, headers);
         return this;
       },
       post: function(path, query, headers){

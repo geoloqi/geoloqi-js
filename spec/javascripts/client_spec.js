@@ -378,7 +378,7 @@ describe("Geoloqi HTML5 Integration", function(){
     });
 
     runs(function(){
-      watcher = new geoloqi.watchLocation({
+      watcher = new geoloqi.watchPosition({
         success: successCallback,
         error: errorCallback
       });
