@@ -57,8 +57,9 @@ var geoloqi = (function () {
             payload.error = {error_code: 500, error: "unknown_error", error_description: payload.error};
           }
         }
-        
-        anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+        if(typeof anonymousCallbacks[payload.callbackId] === "function"){
+          anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+        }
       }
     }
   });
@@ -159,7 +160,6 @@ var geoloqi = (function () {
   exports.expire = expire;
 
   function get(path, args, callback, context) {
-    console.log(arguments[0], arguments[1], arguments[2], arguments[3]);
     if(arguments.length == 4) {
       executeWithAccessToken('GET', path, args, callback, context);
     } else if(arguments.length == 3) {
@@ -229,7 +229,9 @@ var geoloqi = (function () {
       'packageName': (config.package_name) ? config.package_name : null,
       'packageVersion': (config.package_version) ? config.package_version : null
     };
-    anonymousCallbacks[callbackId] = util.bind(callback, context);
+    if(callback){
+      anonymousCallbacks[callbackId] = util.bind(callback, context);
+    }
     socket.postMessage(JSON.stringify(message));
   }
   exports.execute = execute;
@@ -264,8 +266,9 @@ var geoloqi = (function () {
       if (typeof payload.error === 'string') {
         payload.error = JSON.parse(payload.error);
       }
-
-      anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+      if(typeof anonymousCallbacks[payload.callbackId] === "function"){
+        anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+      }
     }
   }
   exports.receive = receive;
