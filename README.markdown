@@ -20,7 +20,7 @@ You can load them all right now from our CDN, with one file!
 This file will always be the latest version. If you'd prefer to fix to a specific version, check the versions folder:
 
 ```html
-<script type="text/javascript" src="https://api.geoloqi.com/js/versions/geoloqi-1.0.12.min.js"></script>
+<script type="text/javascript" src="https://api.geoloqi.com/js/versions/geoloqi-1.0.13.min.js"></script>
 ```
 
 Usage
