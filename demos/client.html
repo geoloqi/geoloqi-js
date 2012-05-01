@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="../source/easyXDM/json2.min.js"></script>
+    <script type="text/javascript" src="../source/easyXDM/easyXDM.min.js"></script>
+    <script type="text/javascript" src="../source/geoloqi-client.js"></script>
+    <!--<script type="text/javascript" src="http://api.geoloqi.com/js/geoloqi.min.js"></script>-->
+    <script type="text/javascript">
+      window.onload = function () {
+
+        geoloqi.init({
+          'client_id': '[STRING : enter your client_id here (get your applications client_id at https://developers.geoloqi.com/account/applications)]',
+          'package_name': '[STRING : an optional name for your package (will be tracked in statistics at https://developers.geoloqi.com/account)]',
+          'package_version': '[STRING : an optional version for your package (will be tracked in statistics at https://developers.geoloqi.com/account)]'
+        });
+
+        geoloqi.onAuthorize = function() {
+          console.log('Authorized!');
+        };
+
+        geoloqi.onOAuthError = function(error) {
+          console.log('Login Error: ', error);
+        }
+      }
+
+      function getProfile() {
+        geoloqi.get('account/profile', function(result, error) {
+          console.log(result);
+        });
+      }
+
+      function changeProfileWebsite() {
+        geoloqi.post('account/profile', {'website':'http://newcoolwebsite.com'}, function(result, error) {
+          console.log(result);
+        });
+      }
+
+      function login(username, password) {
+        geoloqi.login({
+          username: '[username or email]',
+          password: '[password]'
+        });
+      }
+
+      function startWatcher(){
+        watcher = new geoloqi.watchLocation({
+          success: function(position){
+            console.log(position);
+          },
+          error: function(error){
+            console.log(error);
+          }
+        });
+      }
+      
+      function updatePostionOnce(){
+        geoloqi.updateLocation({
+          success: function(position){
+            console.log(position);
+          },
+          error: function(error){
+            console.log(error);
+          }
+        });
+      };
+
+      function runBatch(){
+        batch = new geoloqi.Batch();
+        batch.get("location/last");
+        batch.post("account/profile", {'website':'http://newcoolwebsite.com'});
+        batch.run(function(response, error){
+          console.log(response, error);
+        });
+      };
+    </script>
+    <title>Geoloqi Client JS Test</title>
+  </head>
+  <body>
+    <a href="#" onclick="geoloqi.authenticate(); return false">Login (direct)</a>
+    <br>
+    <a href="#" onclick="geoloqi.authenticateWithPopup(); return false">Login with Popup (IE not supported)</a>
+    <br>
+    <a href="#" onclick="getProfile(); return false">Get Profile</a>
+    <br>
+    <a href="#" onclick="changeProfileWebsite(); return false">Change Profile Website</a>
+    <br>
+    <a href="#" onclick="geoloqi.expire(); return false">Logout</a>
+    <br>
+    <a href="#" onclick="console.log(geoloqi.logged_in()); return false">Is Logged In?</a>
+    <br>
+    <a href="#" onclick="login('USERNAME', 'PASSWORD'); return false">Login With Password</a>
+    <br>
+    <a href="#" onclick="startWatcher(); return false">Start Watching Position</a>
+    <br>
+    <a href="#" onclick="updatePostionOnce(); return false">Update Position Once</a>
+    <br>
+    <a href="#" onclick="runBatch(); return false">Run Batch Request</a>
+  </body>
+</html>
