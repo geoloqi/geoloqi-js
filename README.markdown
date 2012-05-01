@@ -138,11 +138,11 @@ Get the users last known location and run the callback where this = User
 
     User = {
       latitude: null,
-      longitude: null,
+      longitude: null
     };
     
     //arguments are optional
-    geolqoi.get('location/last', funciton(response, error){
+    geoloqi.get('location/last', function(response, error){
       this.latitude = response.location.position.latitude;
       this.longitude = response.location.position.longitude;
     }, User);
@@ -180,7 +180,7 @@ Batch Requests
 
 The Geoloqi API supports running multupile requests at once through the `batch/run` method. you can use the `geolqoi.Batch()` helper to build batch requests and send then to the API. This is particularly good for things such as initialization functions where you may want to make multupile requests at once.
 
-    MyAPP = {
+    MyApp = {
       places: [],
       User: {
         profile: {},
@@ -197,9 +197,10 @@ The Geoloqi API supports running multupile requests at once through the `batch/r
     // Run with a context
     init_batch.run(function(response){
       // response.result is an array of responses in the order you requested them.
-      this.places = response.result[0].body.places
-      this.User.profile = response.result[1].body
-      this.User.location = response.result[2].body
+      console.log(response.result);
+      this.places = response.result[0].body.places;
+      this.User.profile = response.result[1].body;
+      this.User.location = response.result[2].body;
     }, MyApp);
     
     // Run without a context
