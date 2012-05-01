@@ -234,14 +234,14 @@ You can use `geoloqi.updateLocation()` to make a one time update to a users loca
       success: function(position){
         console.log("updated users position", position);
       },
-      error: function(error){
-        console.log("there was an error", error);
+      error: function(){
+        console.log("there was an error");
       }
     });
 
-#### `geoloqi.watchLocation()`
+#### `geoloqi.watchPosition()`
 
-You can use `geoloqi.watchLocation()` to make update a users location as it changes. Impliments `navigator.geolocation.watchPosition` under the hood and sends each point to the Geoloqi API and a callback function.
+You can use `geoloqi.watchPosition()` to make update a users location as it changes. Impliments `navigator.geolocation.watchPosition` under the hood and sends each point to the Geoloqi API and a callback function.
 
 **Options**
 
@@ -256,8 +256,8 @@ You can use `geoloqi.watchLocation()` to make update a users location as it chan
       success: function(position){
         console.log("updated users position", position);
       },
-      error: function(error){
-        console.log("there was an error", error);
+      error: function(){
+        console.log("there was an error");
       }
     });
     
