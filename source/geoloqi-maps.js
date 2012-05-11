@@ -81,6 +81,7 @@ geoloqi.maps = (function () {
       draggable: true,
       editable: true,
       radius: 100,
+      minRadius:100,
       autopan: false,
       toggleInfobox: false
     },
@@ -335,6 +336,8 @@ geoloqi.maps = (function () {
       this.lineOptions = util.merge(defaults.line, this.style.line);
       this.lineOptions.map = this.options.map;
 
+      this.minRadius = this.options.minRadius;
+
       // Methods
       // =======
       this.hideCircles = function(){
@@ -542,15 +545,23 @@ geoloqi.maps = (function () {
 
           // The radius of the circle is cos(gamma) * distance from A to B
           var x = G.computeDistanceBetween(A, B);
-          newRadius = -1 * (Math.cos(radians(gamma)) * x);
-
-          self.handle.setPosition(G.computeOffset(A, newRadius, 135));
-
-          self.updateLine();
-
-          for(var i = 0; i<self.style.circles.count; i++) {
-            self.circles[i].circle.setRadius(newRadius - (i*3));
+          
+          projectedRadius = -1 * (Math.cos(radians(gamma)) * x);
+          
+          newRadius = (projectedRadius >= self.minRadius) ? projectedRadius : self.minRadius;
+          
+          console.log(newRadius);
+          
+          if(newRadius >= self.minRadius){
+            self.handle.setPosition(G.computeOffset(A, newRadius, 135));
+            self.updateLine();
+                        
+            for(var i = 0; i<self.style.circles.count; i++) {
+              self.circles[i].circle.setRadius(newRadius - (i*3));
+            }
           }
+
+
         });
 
         google.maps.event.addListener(this.handle, "dragend", function(event) {

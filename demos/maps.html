@@ -23,8 +23,8 @@
     function initialize() {
 
       theMap = new google.maps.Map(document.getElementById('map'),{
-        zoom: 6,
-        center: new google.maps.LatLng(0, 0),
+        zoom: 16,
+        center: new google.maps.LatLng(47.52393346499376, -120.68387230720519),
         mapTypeId: google.maps.MapTypeId.ROADMAP
       });
 
@@ -146,7 +146,7 @@
           latitude: 47.5246,
           longitude: -120.6834
         },
-        radius: 100000,
+        radius: 200,
         autopan: true,
         editable: true,
         openAfterDrag: true,
