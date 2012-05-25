@@ -23,7 +23,7 @@ var geoloqi = (function () {
   defaultConfig = {
     package_name: null,
     package_version: null
-  }
+  };
   
   var socket = new _geoloqiEasyXDM.Socket({
     remote: receiverUrl,
@@ -85,10 +85,11 @@ var geoloqi = (function () {
   exports.onLoginError = onLoginError;
 
   function processAuth(fragment_or_object) {
+    var newAuth;
     if (typeof fragment_or_object === 'string') {
-      var newAuth = util.objectify(fragment_or_object);
+      newAuth = util.objectify(fragment_or_object);
     } else {
-      var newAuth = fragment_or_object;
+      newAuth = fragment_or_object;
     }
 
     if (newAuth) {
@@ -168,7 +169,7 @@ var geoloqi = (function () {
         alias_context = arguments[2];
         executeWithAccessToken('GET', path, {}, alias_callback, alias_context);
       } else {
-        executeWithAccessToken('GET', path, args, callback);  
+        executeWithAccessToken('GET', path, args, callback);
       }
     } else if(arguments.length == 2) {
       // path, callback
@@ -232,7 +233,7 @@ var geoloqi = (function () {
     }
     socket.postMessage(JSON.stringify(message));
   }
-  exports.execute = execute;  
+  exports.execute = execute;
 
   /* Receive the response from the iframe and execute the callback stored in an array (yes, this is how you're supposed to do it).
      We also check to make sure it was actually sent from Geoloqi, because other API libraries may be using postMessage as well. */
@@ -277,7 +278,7 @@ var geoloqi = (function () {
   */
   
   util.session = (function(){
-    var exports = {}
+    var exports = {};
 
     try {
       localStorage.setItem("mod", "mod");
@@ -290,7 +291,7 @@ var geoloqi = (function () {
     feature = (localStorageTest) ? "localStorage" : "cookie";
     persist = (config.persist) ? config.persist : feature;
 
-    create = function(string){  
+    create = function(string){
       util[persist].set(string);
     };
     exports.create = create;
@@ -313,7 +314,7 @@ var geoloqi = (function () {
     for (var p in obj)
        str.push(p + "=" + encodeURIComponent(obj[p]));
     return str.join("&");
-  }
+  };
 
   util.objectify = function (queryString) {
     var result = {};
@@ -324,7 +325,7 @@ var geoloqi = (function () {
       result[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
     }
     return result;
-  }
+  };
 
   
   /*
@@ -334,12 +335,14 @@ var geoloqi = (function () {
 
   util.cookie = {
     set: function(value, secondsUntilExpire) {
+      var expires;
       if (secondsUntilExpire) {
         var date = new Date();
         date.setTime(date.getTime()+(secondsUntilExpire*1000));
-        var expires = "; expires="+date.toGMTString();
+        expires = "; expires="+date.toGMTString();
+      } else {
+        expires = "";
       }
-      else var expires = "";
       document.cookie = cookieName + "=" + JSON.stringify(value) + expires + "; path=/";
     },
     get: function() {
@@ -348,7 +351,7 @@ var geoloqi = (function () {
       for (var i=0;i < ca.length;i++) {
         var c = ca[i];
         while (c.charAt(0)==' ') c = c.substring(1,c.length);
-        if (c.indexOf(nameEQ) == 0) return JSON.parse(c.substring(nameEQ.length,c.length));
+        if (c.indexOf(nameEQ) === 0) return JSON.parse(c.substring(nameEQ.length,c.length));
       }
 
       return null;
@@ -383,13 +386,15 @@ var geoloqi = (function () {
   util.date = {};
 
   util.date.toISO8601 = function(d){
-   function pad(n){return n<10 ? '0'+n : n};
-   return d.getUTCFullYear()+'-'
-        + pad(d.getUTCMonth()+1)+'-'
-        + pad(d.getUTCDate())+'T'
-        + pad(d.getUTCHours())+':'
-        + pad(d.getUTCMinutes())+':'
-        + pad(d.getUTCSeconds())+'Z';
+    function pad(n){
+      return n<10 ? '0'+n : n;
+    }
+    return d.getUTCFullYear()+'-' +
+          pad(d.getUTCMonth()+1)+'-' +
+          pad(d.getUTCDate())+'T' +
+          pad(d.getUTCHours())+':' +
+          pad(d.getUTCMinutes())+':' +
+          pad(d.getUTCSeconds())+'Z';
   };
 
   /*
@@ -434,7 +439,7 @@ var geoloqi = (function () {
     }
 
     return obj1;
-  }
+  };
 
   util.toQueryString= function(obj, parentObject) {
     if( typeof obj != 'object' ) return '';
@@ -442,9 +447,7 @@ var geoloqi = (function () {
     var rv = '';
     for(var prop in obj) if (obj.hasOwnProperty(prop) ) {
 
-      var qname = parentObject
-         ? parentObject + '.' + prop
-         : prop;
+      var qname = (parentObject) ? parentObject + '.' + prop : prop;
 
       // Expand Arrays
       if (obj[prop] instanceof Array) {
@@ -474,18 +477,18 @@ var geoloqi = (function () {
       }
     }
     return rv.replace(/^&/,'');
-  }
+  };
   
   //Adapted from underscore.js
   util.bind = function(func, context) {
     var bound, args;
-    if (typeof func !== "function") throw new TypeError;
+    if (typeof func !== "function") throw new TypeError();
     if (typeof Function.prototype.bind == 'function') return func.bind(context);
     args = Array.prototype.slice.call(arguments, 2);
     return bound = function() {
       if (!(this instanceof bound)) return func.apply(context, args.concat(Array.prototype.slice.call(arguments)));
       ctor.prototype = func.prototype;
-      var self = new ctor;
+      var self = new ctor();
       var result = func.apply(self, args.concat(Array.prototype.slice.call(arguments)));
       if (Object(result) === result) return result;
       return self;
@@ -507,7 +510,7 @@ var geoloqi = (function () {
   sendPoint = function(position, settings){
     geoloqi.post("location/update", [{
       date: util.date.toISO8601(new Date(position.timestamp)),
-      location: { 
+      location: {
         position: {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -518,7 +521,7 @@ var geoloqi = (function () {
         },
         type: "point"
       },
-      raw: settings.raw,
+      raw: settings.raw
     }]);
     if(typeof settings.success === "function"){
       settings.success.apply(settings.context, [position]);
@@ -530,13 +533,13 @@ var geoloqi = (function () {
     
     function success(position){
       sendPoint(position, settings);
-    };
+    }
     
     function error(){
       if(typeof settings.error === "function"){
         settings.error.apply(settings.context);
       }
-    };
+    }
 
     if(logged_in() && navigator.geolocation){
       navigator.geolocation.getCurrentPosition(success, error, {
@@ -546,7 +549,7 @@ var geoloqi = (function () {
       throw "Client does not support HTML5 Geolocation. This function is unavailable";
     } else if(!logged_in()) {
       throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
-    };
+    }
   };
   exports.updateLocation = updateLocation;
 
@@ -572,7 +575,7 @@ var geoloqi = (function () {
       start: function(){
         this._watcher = navigator.geolocation.watchPosition(this.success, this.error, {
           enableHighAccuracy: true
-        });  
+        });
       }
     };
     if(logged_in() && navigator.geolocation){
@@ -581,7 +584,7 @@ var geoloqi = (function () {
       throw "Client does not support HTML5 Geolocation. This function is unavailable";
     } else if(!logged_in()) {
       throw "Not logged in, no access_token is present. Authorize the user with geoloqi.authorize() first.";
-    };
+    }
   };
   exports.watchPosition = watchPosition;
 
@@ -589,7 +592,7 @@ var geoloqi = (function () {
     
     var object = function(){
       this.jobs = [];
-    }
+    };
 
     object.prototype = {
       get: function(path, query, headers){
@@ -622,10 +625,10 @@ var geoloqi = (function () {
         this.jobs = [];
         return this;
       }
-    }
+    };
 
     return new object();
-  }
+  };
   exports.Batch = Batch;
 
   return exports;
@@ -637,7 +640,12 @@ window.onload = function () {
   geoloqi.init();
 }
 */
-
-window.addEventListener("message", function(event) {
-  geoloqi.receive(event);
-});
+if (window.addEventListener){
+  window.addEventListener("message", function(event) {
+    geoloqi.receive(event);
+  });
+} else if (window.attachEvent) {
+  window.attachEvent("onmessage", function(event) {
+    geoloqi.receive(event);
+  });
+}
