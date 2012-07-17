@@ -550,7 +550,7 @@ geoloqi.maps = (function () {
           
           newRadius = (projectedRadius >= self.minRadius) ? projectedRadius : self.minRadius;
           
-          console.log(newRadius);
+          //console.log(newRadius);
           
           if(newRadius >= self.minRadius){
             self.handle.setPosition(G.computeOffset(A, newRadius, 135));
