@@ -366,6 +366,7 @@ geoloqi.maps = (function () {
       this.setupCircles = function(radius, showOnMap){
         var self = this;
         radius = (radius) ? radius : this.radius;
+        radius = Math.max(self.minRadius, radius);
         showOnMap = (typeof showOnMap !== "undefined") ?  showOnMap : this.onMap();
 
         this.hideCircles();
