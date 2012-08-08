@@ -366,6 +366,7 @@ geoloqi.maps = (function () {
       this.setupCircles = function(radius, showOnMap){
         var self = this;
         radius = (radius) ? radius : this.radius;
+        radius = Math.max(self.minRadius, radius);
         showOnMap = (typeof showOnMap !== "undefined") ?  showOnMap : this.onMap();
 
         this.hideCircles();
@@ -550,8 +551,6 @@ geoloqi.maps = (function () {
           
           newRadius = (projectedRadius >= self.minRadius) ? projectedRadius : self.minRadius;
           
-          console.log(newRadius);
-          
           if(newRadius >= self.minRadius){
             self.handle.setPosition(G.computeOffset(A, newRadius, 135));
             self.updateLine();
@@ -691,8 +690,8 @@ geoloqi.maps = (function () {
         } else {
           this.info = null;
         }
-        
-        if(this.infoOptions.toggleInfoOnClick){
+
+        if(this.options.toggleInfoOnClick){
           this.isClickable = true;
           this.marker.setClickable(true);
           this.clickEvent = google.maps.event.addListener(this.marker, "click", function(event) {
@@ -703,11 +702,12 @@ geoloqi.maps = (function () {
             }
           });
         } else {
-          this.isClickable = false;
-          this.marker.setClickable(false);
-          if(typeof this.clickEvent === 'object'){
-            google.maps.event.removeListener(this.clickEvent);
-          }
+          console.log("OK");
+          //this.isClickable = false;
+          //this.marker.setClickable(false);
+          //if(typeof this.clickEvent === 'object'){
+          //  google.maps.event.removeListener(this.clickEvent);
+          //}
         }
 
         this.delayedInfobox = false;
@@ -723,7 +723,7 @@ geoloqi.maps = (function () {
         });
 
         google.maps.event.addListener(this.marker, "hide", function(event) {
-          self.info.close(); 
+          self.info.close();
         });
 
        google.maps.event.addListener(this.marker, "open", function(event){
