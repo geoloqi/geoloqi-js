@@ -11,7 +11,7 @@ var geoloqi = (function () {
   oauthPath = '/oauth/authorize',
   fullOauthUrl = oauthUrl + oauthPath,
   iframe = null,
-  _geoloqiEasyXDM = easyXDM.noConflict(_geoloqiEasyXDM),
+  _geoloqiEasyXDM = easyXDM.noConflict("geoloqi"),
   cookieName = '_geoloqi_auth',
   config = {},
   auth = null,
@@ -24,7 +24,7 @@ var geoloqi = (function () {
     package_name: null,
     package_version: null
   };
-  
+
   var socket = new _geoloqiEasyXDM.Socket({
     remote: receiverUrl,
     onMessage: function(message, origin){
@@ -70,7 +70,7 @@ var geoloqi = (function () {
 
     exports.auth = util.session.load();
 
-    config = util.merge(defaultConfig, opts);
+    config = (opts) ? util.merge(defaultConfig, opts) : defaultConfig;
 
     if (fragment !== "") {
       processAuth(fragment);
@@ -640,6 +640,7 @@ window.onload = function () {
   geoloqi.init();
 }
 */
+
 if (window.addEventListener){
   window.addEventListener("message", function(event) {
     geoloqi.receive(event);
