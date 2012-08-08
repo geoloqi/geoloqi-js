@@ -1,6 +1,6 @@
 var geoloqi = (function () {
-  var version = '1.0.15';
-  var build_version = 'b4d7b2c';
+  var version = '1.0.16';
+  var build_version = 'a8f1433';
   var anonymousCallbacks = {},
   self = this,
   exports = {},
@@ -71,7 +71,8 @@ var geoloqi = (function () {
     exports.auth = util.session.load();
 
     config = (opts) ? util.merge(defaultConfig, opts) : defaultConfig;
-
+    console.log(opts);
+    console.log(config);
     if (fragment !== "") {
       processAuth(fragment);
     }
@@ -126,23 +127,22 @@ var geoloqi = (function () {
     var args = {},
         url = '';
     if (auth === null) {
+      args = {'response_type': 'token', 'client_id': config.client_id};
 
-      args = {'response_type': 'token', 'client_id': self.config.client_id};
-
-      if (self.config.redirect_uri) {
-        args.redirect_uri = self.config.redirect_uri;
+      if (config.redirect_uri) {
+        args.redirect_uri = config.redirect_uri;
       }
 
       if (popup === true) {
         args.mode = 'popup';
       }
       url = oauthUrl + oauthPath + '?' + util.serialize(args);
-
+      util.serialize(args);
       if (popup === true) {
         var popupWindow = window.open(url,'_geoloqi_auth_popup','height=500,width=700');
-         if (window.focus) {
-         popupWindow.focus();
-         }
+        if (window.focus) {
+          popupWindow.focus();
+        }
       } else {
         window.location = url;
       }
