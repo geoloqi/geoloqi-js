@@ -1,6 +1,6 @@
 var geoloqi = (function () {
   var version = '1.0.16';
-  var build_version = '283df4c4ef6a53daf5fc5f40e600be14a49c4bba';
+  var build_version = '7201561';
   var anonymousCallbacks = {},
   self = this,
   exports = {},
@@ -11,7 +11,7 @@ var geoloqi = (function () {
   oauthPath = '/oauth/authorize',
   fullOauthUrl = oauthUrl + oauthPath,
   iframe = null,
-  _geoloqiEasyXDM = easyXDM.noConflict(_geoloqiEasyXDM),
+  _geoloqiEasyXDM = easyXDM.noConflict("geoloqi"),
   cookieName = '_geoloqi_auth',
   config = {},
   auth = null,
@@ -24,7 +24,7 @@ var geoloqi = (function () {
     package_name: null,
     package_version: null
   };
-  
+
   var socket = new _geoloqiEasyXDM.Socket({
     remote: receiverUrl,
     onMessage: function(message, origin){
@@ -70,8 +70,9 @@ var geoloqi = (function () {
 
     exports.auth = util.session.load();
 
-    config = util.merge(defaultConfig, opts);
-
+    config = (opts) ? util.merge(defaultConfig, opts) : defaultConfig;
+    console.log(opts);
+    console.log(config);
     if (fragment !== "") {
       processAuth(fragment);
     }
@@ -126,23 +127,22 @@ var geoloqi = (function () {
     var args = {},
         url = '';
     if (auth === null) {
+      args = {'response_type': 'token', 'client_id': config.client_id};
 
-      args = {'response_type': 'token', 'client_id': self.config.client_id};
-
-      if (self.config.redirect_uri) {
-        args.redirect_uri = self.config.redirect_uri;
+      if (config.redirect_uri) {
+        args.redirect_uri = config.redirect_uri;
       }
 
       if (popup === true) {
         args.mode = 'popup';
       }
       url = oauthUrl + oauthPath + '?' + util.serialize(args);
-
+      util.serialize(args);
       if (popup === true) {
         var popupWindow = window.open(url,'_geoloqi_auth_popup','height=500,width=700');
-         if (window.focus) {
-         popupWindow.focus();
-         }
+        if (window.focus) {
+          popupWindow.focus();
+        }
       } else {
         window.location = url;
       }
@@ -640,6 +640,7 @@ window.onload = function () {
   geoloqi.init();
 }
 */
+
 if (window.addEventListener){
   window.addEventListener("message", function(event) {
     geoloqi.receive(event);
