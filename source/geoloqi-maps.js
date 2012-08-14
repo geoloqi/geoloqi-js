@@ -701,13 +701,6 @@ geoloqi.maps = (function () {
               self.open();
             }
           });
-        } else {
-          console.log("OK");
-          //this.isClickable = false;
-          //this.marker.setClickable(false);
-          //if(typeof this.clickEvent === 'object'){
-          //  google.maps.event.removeListener(this.clickEvent);
-          //}
         }
 
         this.delayedInfobox = false;
