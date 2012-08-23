@@ -71,8 +71,6 @@ var geoloqi = (function () {
     exports.auth = util.session.load();
 
     config = (opts) ? util.merge(defaultConfig, opts) : defaultConfig;
-    console.log(opts);
-    console.log(config);
     if (fragment !== "") {
       processAuth(fragment);
     }
