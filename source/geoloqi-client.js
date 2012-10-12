@@ -107,16 +107,19 @@ var geoloqi = (function () {
   }
 
   function authenticate() {
+    window.console && console.log('WARNING: OAuth features will be removed from a future version of geoloqi.js');
     authenticatePrompt(true);
   }
   exports.authenticate = authenticate;
 
   function authenticateWithRedirect() {
+    window.console && console.log('WARNING: OAuth features will be removed from a future version of geoloqi.js');
     authenticatePrompt(false);
   }
   exports.authenticateWithRedirect = authenticate.authenticateWithRedirect;
 
   function authenticateWithPopup() {
+    window.console && console.log('WARNING: OAuth features will be removed from a future version of geoloqi.js');
     authenticatePrompt(true);
   }
   exports.authenticateWithPopup = authenticateWithPopup;
@@ -269,12 +272,12 @@ var geoloqi = (function () {
     }
   }
   exports.receive = receive;
-  
+
   /*
   Utilities for manipulating sessions
   -----------------------------------
   */
-  
+
   util.session = (function(){
     var exports = {};
 
@@ -325,7 +328,7 @@ var geoloqi = (function () {
     return result;
   };
 
-  
+
   /*
   Utilities for working with cookies
   ----------------------------------
@@ -358,8 +361,8 @@ var geoloqi = (function () {
       util.cookie.set("",-1);
     }
   };
-  
- 
+
+
   /*
   Utilities for working with localStorage
   ---------------------------------------
@@ -380,7 +383,7 @@ var geoloqi = (function () {
   Utilities for working with dates
   --------------------------------
   */
-  
+
   util.date = {};
 
   util.date.toISO8601 = function(d){
@@ -441,7 +444,7 @@ var geoloqi = (function () {
 
   util.toQueryString= function(obj, parentObject) {
     if( typeof obj != 'object' ) return '';
-   
+
     var rv = '';
     for(var prop in obj) if (obj.hasOwnProperty(prop) ) {
 
@@ -476,7 +479,7 @@ var geoloqi = (function () {
     }
     return rv.replace(/^&/,'');
   };
-  
+
   //Adapted from underscore.js
   util.bind = function(func, context) {
     var bound, args;
@@ -528,11 +531,11 @@ var geoloqi = (function () {
 
   updateLocation = function(opts){
     settings = util.merge(pointDefaults, opts);
-    
+
     function success(position){
       sendPoint(position, settings);
     }
-    
+
     function error(){
       if(typeof settings.error === "function"){
         settings.error.apply(settings.context);
@@ -587,7 +590,7 @@ var geoloqi = (function () {
   exports.watchPosition = watchPosition;
 
   Batch = function(){
-    
+
     var object = function(){
       this.jobs = [];
     };
