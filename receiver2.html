@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="source/easyXDM/easyXDM.min.js"></script>
+    <script type="text/javascript" src="source/easyXDM/json2.min.js"></script>
+    <script type="text/javascript" src="source/userAgent/userAgent.js"></script>
+    
+    <script type="text/javascript">
+      var geoloqiReceiver = (function() {
+        var apiUrl = 'https://api.geoloqi.com/1/';
+        var version = '1.0.3';
+        var build_version = 'e5aab97e86178f443407f87b420fd92ff0ca2837';
+        var exports = {};
+
+        var socket = new easyXDM.Socket({
+          onMessage: function(message, origin) {
+
+            var request = JSON.parse(message);
+
+            geoloqiReceiver.execute(request, function(payload) {
+              payload.callbackId = request.callbackId;
+              socket.postMessage(JSON.stringify(payload), origin);
+            });
+          }
+        });
+
+        function execute(o, callback) {
+          var ua = UserAgent.parse(navigator.userAgent),
+          headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-LQ-Device-OS': ua.os,
+            'X-LQ-SDK-Version': o.sdkVersion,
+            'X-LQ-SDK-Build': o.sdkBuild,
+            'X-LQ-JS-Receiver-Version': version,
+            'X-LQ-JS-Receiver-Build': build_version,
+            'X-LQ-Browser-Family': ua.family,
+            'X-LQ-Browser-Version': ua.major
+          },
+          
+          xhr = util.getXHR(),
+          payload = {};
+          
+          if (o.packageName) {
+            headers['X-LQ-Package-Name'] = o.packageName;
+          }
+          
+          if (o.packageVersion) {
+            headers['X-LQ-Package-Version'] = o.packageVersion;
+          }
+
+          if(typeof(o.accessToken) === 'string') {
+            headers['Authorization'] = 'OAuth '+o.accessToken;
+          }
+
+          xhr.onreadystatechange = function(){
+
+            if (4 === xhr.readyState) {
+
+              if (xhr.status < 400 || xhr.status == 409) {
+                payload.response = xhr.responseText;
+              } else {
+                payload.error = xhr.responseText;
+              }
+
+              payload.headers = xhr.getAllResponseHeaders();
+
+              callback(payload);
+            }
+
+          };
+
+          var fullUrl = apiUrl+o.path;
+	  if(o.method == 'GET' && typeof(o.args) === 'object') {
+            var splitPath = o.path.split('?'),
+                queryObj = o.args;
+            if(splitPath.length === 2) {
+              queryObj = util.merge(queryObj, util.objectify(splitPath[1]));
+            }
+
+            fullUrl = apiUrl + splitPath[0] + '?' + util.serialize(queryObj);
+          }
+
+          xhr.open(o.method, fullUrl, true);
+
+          // set header fields
+          for (var field in headers) {
+            xhr.setRequestHeader(field, headers[field]);
+          }
+
+          if (o.method === 'POST') {
+            xhr.send(JSON.stringify(o.args));
+          } else {
+            xhr.send();
+          }
+        }
+        exports.execute = execute;
+
+        var util = {};
+        util.getXHR = function() {
+          if (window.XMLHttpRequest
+            && ('file:' != window.location.protocol || !window.ActiveXObject)) {
+            return new XMLHttpRequest;
+          } else {
+            try {
+              return new ActiveXObject('Microsoft.XMLHTTP');
+            } catch(e) {}
+            try {
+              return new ActiveXObject('Msxml2.XMLHTTP.6.0');
+            } catch(e) {}
+            try {
+              return new ActiveXObject('Msxml2.XMLHTTP.3.0');
+            } catch(e) {}
+            try {
+              return new ActiveXObject('Msxml2.XMLHTTP');
+            } catch(e) {}
+          }
+          return false;
+        }
+
+        util.serialize = function (obj) {
+          var str = [];
+          for (var p in obj)
+            str.push(p + "=" + encodeURIComponent(obj[p]));
+          return str.join("&");
+        }
+
+        util.objectify = function (queryString) {
+          var result = {};
+          var re = /([^&=]+)=([^&]*)/g;
+          var m;
+
+          while (m = re.exec(queryString)) {
+            result[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+          }
+
+          return result;
+        }
+
+        util.merge = function(obj1, obj2){
+          var obj3 = {};
+          for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
+          for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
+          return obj3;
+        }
+
+        return exports;
+      }());
+    </script>
+  </head>
+  <body></body>
+</html>

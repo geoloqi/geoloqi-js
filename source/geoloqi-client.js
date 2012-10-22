@@ -33,7 +33,7 @@ var geoloqi = (function () {
       }
 
       var payload = JSON.parse(message);
-
+      console.log(payload);
       if(typeof payload.oauth === 'object') {
 
         if(typeof payload.oauth.auth === 'string') {
@@ -58,7 +58,7 @@ var geoloqi = (function () {
           }
         }
         if(typeof anonymousCallbacks[payload.callbackId] === "function"){
-          anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+          anonymousCallbacks[payload.callbackId](payload.response, payload.error, payload.headers);
         }
       }
     }
