@@ -33,7 +33,7 @@ var geoloqi = (function () {
       }
 
       var payload = JSON.parse(message);
-      console.log(payload);
+
       if(typeof payload.oauth === 'object') {
 
         if(typeof payload.oauth.auth === 'string') {
@@ -57,8 +57,9 @@ var geoloqi = (function () {
             payload.error = {error_code: 500, error: "unknown_error", error_description: payload.error};
           }
         }
+
         if(typeof anonymousCallbacks[payload.callbackId] === "function"){
-          anonymousCallbacks[payload.callbackId](payload.response, payload.error, payload.headers);
+          anonymousCallbacks[payload.callbackId](payload.response, payload.error, geoloqi.util.parseHeaders(payload.headers));
         }
       }
     }
@@ -267,7 +268,7 @@ var geoloqi = (function () {
         payload.error = JSON.parse(payload.error);
       }
       if(typeof anonymousCallbacks[payload.callbackId] === "function"){
-        anonymousCallbacks[payload.callbackId](payload.response, payload.error);
+        anonymousCallbacks[payload.callbackId](payload.response, payload.error, geoloqi.util.parseHeaders(payload.headers));
       }
     }
   }
@@ -495,6 +496,22 @@ var geoloqi = (function () {
       return self;
     };
   };
+
+  util.parseHeaders = function(headerString) {
+    // parse header sting into an object
+    var headers = {};
+    var headerArray = headerString.split("\n");
+    for (var i=0; i < headerArray.length; i++) {
+      var header = headerArray[i].split(":");
+      var headerName = header.splice(0,1)[0];
+      var headerValue = header.join(":");
+      if(headerName && headerValue){
+        headers[headerName] = headerValue;
+      }
+    }
+    return headers;
+  };
+  exports.util = util;
 
 /*
   HTML5 Geolocation helpers
