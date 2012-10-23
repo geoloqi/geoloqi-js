@@ -52,7 +52,7 @@
           }
         });
       }
-      
+
       function updatePostionOnce(){
         geoloqi.updateLocation({
           success: function(position){
@@ -76,9 +76,7 @@
     <title>Geoloqi Client JS Test</title>
   </head>
   <body>
-    <a href="#" onclick="geoloqi.authenticate(); return false">Login (direct)</a>
-    <br>
-    <a href="#" onclick="geoloqi.authenticateWithPopup(); return false">Login with Popup (IE not supported)</a>
+    <a href="#" onclick="login('USERNAME', 'PASSWORD'); return false">Login With Password</a>
     <br>
     <a href="#" onclick="getProfile(); return false">Get Profile</a>
     <br>
@@ -87,8 +85,6 @@
     <a href="#" onclick="geoloqi.expire(); return false">Logout</a>
     <br>
     <a href="#" onclick="console.log(geoloqi.logged_in()); return false">Is Logged In?</a>
-    <br>
-    <a href="#" onclick="login('USERNAME', 'PASSWORD'); return false">Login With Password</a>
     <br>
     <a href="#" onclick="startWatcher(); return false">Start Watching Position</a>
     <br>
