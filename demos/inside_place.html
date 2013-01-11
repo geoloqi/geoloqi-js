@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8 />
+    <title>Quick App</title>
+    <script type="text/javascript" src="../source/easyXDM/json2.min.js"></script>
+    <script type="text/javascript" src="../source/easyXDM/easyXDM.min.js"></script>
+    <script type="text/javascript" src="../source/geoloqi-client.js"></script>
+
+    <!--<script type="text/javascript" src="../geoloqi.min.js"></script>-->
+
+    <!--<script type="text/javascript" src="http://api.geoloqi.com/js/geoloqi.min.js"></script>-->
+    <script>
+      YOUR_API_KEY = "Your API Key from http://developers.geoloqi.com/account/applications";
+      YOUR_LAYER_ID = "Your Layer ID from http://developers.geoloqi.com/account/layers";
+
+      geoloqi.onAuthorize = updateLocation;
+
+      geoloqi.init({
+        apiKey: YOUR_API_KEY,
+        createOrRestoreUser: true
+      });
+
+      function updateLocation(){
+        geoloqi.updateLocation({
+          success: function(position){
+            geoloqi.get("place/nearby", {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              layer_id: YOUR_LAYER_ID
+            }, function(data, error){
+              //if a place is returned you are inside the place
+              if(data.nearby.length){
+                // you are inside at least one place
+                document.write("You are at "+ data.nearby[0].name);
+                alert("You are at " + data.nearby[0].name);
+              } else {
+                document.write("You are not at a place");
+                alert("You are not at a place");
+              }
+            })
+          },
+        });
+      }
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

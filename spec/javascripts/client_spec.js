@@ -8,22 +8,22 @@ describe("Geoloqi Client Authentication", function() {
   });
 
   it("should authenticate with a username and password.", function(){
-    
+
     runs(function(){
       geoloqi.login({
         username: 'spampk',
         password: '123454321'
       });
     });
-    
+
     waitsFor(function(){
       return geoloqi.logged_in();
     }, "authentication with username and password timeout", 1000);
-    
+
     runs(function(){
       expect(typeof geoloqi.auth.access_token).toEqual("string");
     });
-  
+
   });
 
   it(" should run geoloqi.onAuthorize() on a successful login", function(){
@@ -44,7 +44,7 @@ describe("Geoloqi Client Authentication", function() {
     });
 
   });
-  
+
   it("should run geoloqi.onLoginError() on an incorrect password", function(){
     runs(function(){
       spyOn(geoloqi, "onLoginError");
@@ -81,9 +81,9 @@ describe("Geoloqi Client Authentication", function() {
 
     runs(function(){
       expect(geoloqi.auth && geoloqi.auth.access_token).toBeTruthy();
-      expect(geoloqi.logged_in()).toBeTruthy();  
+      expect(geoloqi.logged_in()).toBeTruthy();
     });
-    
+
   });
 
   it("logged_in() should return false if we are logged out", function(){
@@ -103,7 +103,7 @@ describe("Geoloqi Client Authentication", function() {
     }, "authentication with username and password timeout", 1000);
 
     runs(function(){
-      geoloqi.expire();    
+      geoloqi.expire();
     });
 
     runs(function(){
@@ -117,11 +117,11 @@ describe("Geoloqi Client Authentication", function() {
 });
 
 describe("Geoloqi API Client", function() {
-  
+
   beforeEach(function(){
     geoloqi.init({'client_id': 'geoloqi_website'});
     geoloqi.testing = {};
-    
+
     if(!geoloqi.logged_in()){
       runs(function(){
         geoloqi.login({
@@ -130,16 +130,16 @@ describe("Geoloqi API Client", function() {
         });
       });
     };
-    
+
     waitsFor(function(){
       return geoloqi.logged_in();
     }, "pre-spec login", 1000);
   });
 
   it("should get the users profile and execute a callback function (2 params)", function(){
-    
+
     var callback = jasmine.createSpy();
-    
+
     runs(function(){
       geoloqi.get("account/profile", callback);
     });
@@ -157,9 +157,9 @@ describe("Geoloqi API Client", function() {
   });
 
   it("should get the users profile and execute a callback function (3 params w/ args)", function(){
-    
+
     var callback = jasmine.createSpy();
-    
+
     runs(function(){
       geoloqi.get("account/profile", {}, callback);
     });
@@ -174,7 +174,7 @@ describe("Geoloqi API Client", function() {
       expect(callback.mostRecentCall.args[1]).toBeUndefined();
     });
   });
-  
+
   it("should get the users profile and execute a callback function in a specific context(3 params)", function(){
     geoloqi.testing.fakeCallback = function(){
       geoloqi.testing.withscope = this.test;
@@ -226,9 +226,9 @@ describe("Geoloqi API Client", function() {
   });
 
   it("should run the callback with an error object if the get() request returns an error", function(){
-    
+
     callback = jasmine.createSpy();
-    
+
     runs(function(){
       geoloqi.get("accountt/profile", {}, callback);
     });
@@ -240,7 +240,7 @@ describe("Geoloqi API Client", function() {
     runs(function(){
       expect(callback).toHaveBeenCalled();
       expect(callback.mostRecentCall.args[0]).toBeUndefined();
-      expect(typeof callback.mostRecentCall.args[1].error).toBeTruthy();  
+      expect(typeof callback.mostRecentCall.args[1].error).toBeTruthy();
     });
 
   });
@@ -292,9 +292,9 @@ describe("Geoloqi API Client", function() {
 
 
   it("should run the callback with an error object if the post() request an error", function(){
-    
+
     callback = jasmine.createSpy();
-    
+
     runs(function(){
       geoloqi.post("accountt/profile", {}, callback);
     });
@@ -306,14 +306,14 @@ describe("Geoloqi API Client", function() {
     runs(function(){
       expect(callback).toHaveBeenCalled();
       expect(callback.mostRecentCall.args[0]).toBeUndefined();
-      expect(typeof callback.mostRecentCall.args[1].error).toBeTruthy();  
+      expect(typeof callback.mostRecentCall.args[1].error).toBeTruthy();
     });
 
   });
 
   it("should run a batch request with 2 jobs and recive 2 sets of results", function(){
     callback = jasmine.createSpy();
-    
+
     runs(function(){
       batch = new geoloqi.Batch();
       batch.get("location/last").get("account/profile").run(callback);
@@ -326,7 +326,7 @@ describe("Geoloqi API Client", function() {
     runs(function(){
       expect(callback).toHaveBeenCalled();
       expect(callback.mostRecentCall.args[0].result.length).toEqual(2);
-    });  
+    });
 
   });
 
@@ -337,7 +337,7 @@ describe("Geoloqi HTML5 Integration", function(){
 
     errorCallback = jasmine.createSpy("Watcher Error Callback");
     successCallback = jasmine.createSpy("Watcher Success Callback");
-    
+
     runs(function(){
       spyOn(geoloqi, "post");
     });
@@ -369,10 +369,10 @@ describe("Geoloqi HTML5 Integration", function(){
   });
 
   it("should monitor a users location and post updates to the server and run a callback", function(){
-    
+
     errorCallback = jasmine.createSpy("Watcher Error Callback");
     successCallback = jasmine.createSpy("Watcher Success Callback");
-    
+
     runs(function(){
       spyOn(geoloqi, "post");
     });

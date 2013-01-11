@@ -68,11 +68,24 @@ var geoloqi = (function () {
     var fragment = document.location.hash.substring(1),
         newAuth = {};
 
-    exports.auth = util.session.load();
-
     config = (opts) ? util.merge(defaultConfig, opts) : defaultConfig;
+
     if (fragment !== "") {
       processAuth(fragment);
+    }
+
+    if(config.apiKey){
+      config.client_id = config.apiKey;
+    }
+
+    if(!exports.auth && config.createOrRestoreUser && !processAuth(util.session.load())) {
+      geoloqi.execute("POST", "user/create_anon", {
+        client_id: config.client_id
+      }, function(response, error){
+        if(!error){
+          processAuth(response);
+        }
+      });
     }
   }
 
@@ -100,6 +113,8 @@ var geoloqi = (function () {
         exports.onAuthorize(newAuth);
       }
     }
+
+    return exports.auth;
   }
 
   function returnFromPopup(auth) {
