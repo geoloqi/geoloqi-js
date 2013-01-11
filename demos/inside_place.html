@@ -14,16 +14,21 @@
       YOUR_API_KEY = "Your API Key from http://developers.geoloqi.com/account/applications";
       YOUR_LAYER_ID = "Your Layer ID from http://developers.geoloqi.com/account/layers";
 
+      // this function is called when authentication is complete.
       geoloqi.onAuthorize = updateLocation;
 
+      // initalize the library.
       geoloqi.init({
         apiKey: YOUR_API_KEY,
-        createOrRestoreUser: true
+        createOrRestoreUser: true // this will load a session from localstorage or cookie or create a new anonymous user with the API
       });
 
+      // this will be called once we have a access token
       function updateLocation(){
+        //update the users location with the Geoloqi API
         geoloqi.updateLocation({
           success: function(position){
+            // calling place/nearby without distance will return places the user is inside.
             geoloqi.get("place/nearby", {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
@@ -39,7 +44,11 @@
                 alert("You are not at a place");
               }
             })
+
           },
+          error: function(){
+            // we could not get a location
+          }
         });
       }
     </script>
